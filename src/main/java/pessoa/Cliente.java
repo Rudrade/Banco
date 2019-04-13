@@ -24,7 +24,16 @@ public class Cliente extends Pesssoa {
 			System.out.print("Password: ");
 			password = scan.next();
 
-			BdUtil.login(nrCliente, password);
+			switch(BdUtil.login(nrCliente, password)) {
+                case "normal":
+                    break;
+                case "vip":
+                    break;
+                case "administrador":
+                    Administrador.menuAdmin();
+                    break;
+            }
+			break;
 		}
 	}
 

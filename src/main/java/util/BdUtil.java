@@ -11,12 +11,29 @@ public class BdUtil {
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
 
+	//Metodo para fazer  o display de todos os clientes
+	public static void displayClientes() {
+		try {
+			PreparedStatement stmt = getConnection().prepareStatement("SELECT cliente.idCliente, pessoa.nome FROM cliente INNER JOIN pessoa ON cliente.idPessoa = pessoa.idPessoa;");
+			ResultSet rs = stmt.executeQuery();
+
+			System.out.println();
+			System.out.println("ID \tNome");
+			System.out.println("--------------");
+			while (rs.next()) {
+				System.out.printf("%d:\t%s\n", rs.getInt("idCliente"), rs.getString("nome"));
+			}
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro ao ligar à base de dados: %s", e.getCause());
+		}
+	}
+
 	//Metodo para fazer uma pesquisa a base de dados, pesquisando o utilizador e password.
 	//Caso tenha entrado é feito um novo registo na base de dados
-	public static void login(int nrCliente, String password) {
+	public static String login(int nrCliente, String password) {
 		try {
 			ResultSet rs = null;
-			PreparedStatement stmtLogin = getConnection().prepareStatement("SELECT password FROM cliente WHERE idCliente = ?;");
+			PreparedStatement stmtLogin = getConnection().prepareStatement("SELECT password, tpCliente FROM cliente WHERE idCliente = ?;");
 			PreparedStatement stmtDataHora = getConnection().prepareStatement("INSERT INTO login (idCliente, dataLogin) VALUES (?, ?);");
 
 			stmtLogin.setInt(1, nrCliente);
@@ -25,24 +42,24 @@ public class BdUtil {
 
 			while (rs.next()) {
 				if (password.equals(rs.getString("password"))) {
-					System.out.println("Login com sucesso");
-
 					stmtDataHora.setInt(1, nrCliente);
 					//Código para obter, tratar e inserir data no statement
-					LocalDate data = LocalDate.now();
+					/*LocalDate data = LocalDate.now();
 					Date sqlData = Date.valueOf(data);
 					stmtDataHora.setDate(2, sqlData);
 					//*****************************************
-					stmtDataHora.execute();
-					break;
+					stmtDataHora.execute();*/
+					System.out.println("Login com sucesso");
+					return rs.getString("tpCliente");
 				}
-				else {
-					System.out.println("Password ou número de cliente errado");
-				}
+
+				System.out.println("Password ou número de cliente errado");
 			}
 		} catch (SQLException e) {
 			System.out.printf("Erro ao fazer login: %s", e.getCause());
 		}
+
+		return null;
 	}
 
 	//Metodo para registar um cliente na base de dados com todos os dados obrigatórios

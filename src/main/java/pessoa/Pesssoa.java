@@ -2,7 +2,7 @@ package pessoa;
 
 //Class Pessoa
 public abstract class Pesssoa {
-	private static int idPessoa = 0;
+	private int idPessoa = 0;
 	private String nome;
 	private String morada;
 	private int telefone;
@@ -26,7 +26,7 @@ public abstract class Pesssoa {
 	
 	boolean setTelefone (int telefone) {
 		String telefoneS = "";
-		telefoneS = telefoneS.valueOf(telefone);
+		telefoneS = String.valueOf(telefone);
 		
 		if ((telefoneS.length() == 9) && (telefoneS.startsWith("91") || telefoneS.startsWith("93") || telefoneS.startsWith("96") || telefoneS.startsWith("92"))) {
 			this.telefone = telefone;

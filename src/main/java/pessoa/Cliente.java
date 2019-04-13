@@ -14,8 +14,9 @@ public class Cliente extends Pesssoa {
 	public void registarCliente() {
 		Scanner scan = new Scanner(System.in);
 		int tipoCliente;
+		Cliente cliente = new Cliente();
 		
-		do {
+		TIPO: do {
 			System.out.println();
 			System.out.println("Menu - Registo cliente:");
 			System.out.println("1- Normal");
@@ -25,18 +26,41 @@ public class Cliente extends Pesssoa {
 		
 			switch (tipoCliente) {
 				case 1:
-					ClienteNormal cliente = new ClienteNormal();
-					cliente.registoClienteNormal();					
-					BdUtil.registarCliente(cliente);
-					break;
+					cliente.setTipoCliente("normal");
+					break TIPO;
 				case 2:
-					break;
+					cliente.setTipoCliente("vip");
+					break TIPO;
 				case 0:
 					return;
 				default:
 					System.out.println("A opção selecionada não existe");
 			}
 		} while(tipoCliente != 0);
+		
+		System.out.println();
+		System.out.print("Nome: ");
+		cliente.setNome(scan.next());
+		
+		System.out.print("Morada: ");
+		cliente.setMorada(scan.next());
+		
+		do {
+			System.out.print("Telefone: ");
+		} while (!cliente.setTelefone(scan.nextInt()));
+		
+		do {
+			System.out.print("Email: ");
+		} while (!cliente.setEmail(scan.next()));
+		
+		System.out.print("Profissão: ");
+		cliente.setProfissao(scan.next());
+		
+		do {
+			System.out.print("Password: ");
+		} while (!cliente.setPassword(scan.next()));
+		
+		BdUtil.registarCliente(cliente);
 	}
 	
 	boolean setPassword(String password) {

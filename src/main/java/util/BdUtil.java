@@ -14,6 +14,7 @@ public class BdUtil {
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
 	
+	//Metodo para registar um cliente na base de dados com todos os dados obrigatórios
 	public static void registarCliente(Cliente cliente) {
 		try {
 			PreparedStatement stmtPessoa = getConnection().prepareStatement("INSERT INTO pessoa (idPessoa, nome, morada, telefone, email, profissao) VALUES (?, ?, ?, ?, ?, ?);");
@@ -45,6 +46,8 @@ public class BdUtil {
 			
 			stmtCliente.execute();
 			stmtCliente.close();
+			
+			System.out.println("Cliente registado com sucesso");
 		} catch (SQLException e) {
 			System.out.printf("Erro ao registar cliente: %s\n", e.getMessage());
 		}

@@ -30,5 +30,7 @@ public class App {
     				System.out.println("Opção selecionada é inválida");
     		}    		
     	} while (op != 0);
+    	
+    	scan.close();
     }
 }

@@ -10,7 +10,7 @@ public class Cliente extends Pesssoa {
 	private String tipoCliente;
 	
 	//Metodo para registar um novo cliente
-	//Neste metodo apenas selecionada o tipo de cliente a registar e conforme a escolha chama o registo do respetivo cliente.
+	//Este metodo tambem insere os dados do cliente na base de dados
 	public void registarCliente() {
 		Scanner scan = new Scanner(System.in);
 		int tipoCliente;

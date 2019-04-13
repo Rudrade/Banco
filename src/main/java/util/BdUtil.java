@@ -1,10 +1,7 @@
 package util;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDate;
 
 import pessoa.Cliente;
 
@@ -13,7 +10,41 @@ public class BdUtil {
 	private static final String BD_URL		= "jdbc:mysql://137.74.114.78:3306/banco?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
-	
+
+	//Metodo para fazer uma pesquisa a base de dados, pesquisando o utilizador e password.
+	//Caso tenha entrado é feito um novo registo na base de dados
+	public static void login(int nrCliente, String password) {
+		try {
+			ResultSet rs = null;
+			PreparedStatement stmtLogin = getConnection().prepareStatement("SELECT password FROM cliente WHERE idCliente = ?;");
+			PreparedStatement stmtDataHora = getConnection().prepareStatement("INSERT INTO login (idCliente, dataLogin) VALUES (?, ?);");
+
+			stmtLogin.setInt(1, nrCliente);
+
+			rs = stmtLogin.executeQuery();
+
+			while (rs.next()) {
+				if (password.equals(rs.getString("password"))) {
+					System.out.println("Login com sucesso");
+
+					stmtDataHora.setInt(1, nrCliente);
+					//Código para obter, tratar e inserir data no statement
+					LocalDate data = LocalDate.now();
+					Date sqlData = Date.valueOf(data);
+					stmtDataHora.setDate(2, sqlData);
+					//*****************************************
+					stmtDataHora.execute();
+					break;
+				}
+				else {
+					System.out.println("Password ou número de cliente errado");
+				}
+			}
+		} catch (SQLException e) {
+			System.out.printf("Erro ao fazer login: %s", e.getCause());
+		}
+	}
+
 	//Metodo para registar um cliente na base de dados com todos os dados obrigatórios
 	public static void registarCliente(Cliente cliente) {
 		try {

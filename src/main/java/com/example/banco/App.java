@@ -19,10 +19,10 @@ public class App {
     		
     		switch (op) {
     			case 1:
+    				Cliente.login();
     				break;
     			case 2:
-    				Cliente cliente = new Cliente();
-    				cliente.registarCliente();
+    				Cliente.registarCliente();
     				break;
     			case 0:
     				System.exit(0);

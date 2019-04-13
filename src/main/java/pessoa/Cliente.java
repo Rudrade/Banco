@@ -8,10 +8,29 @@ import util.BdUtil;
 public class Cliente extends Pesssoa {
 	private String password;
 	private String tipoCliente;
-	
+
+	//Metodo para um cliente fazer login
+	public static void login() {
+		Scanner scan = new Scanner(System.in);
+		int nrCliente;
+		String password;
+
+		while (true) {
+			System.out.println();
+			System.out.println("Menu - Login");
+			System.out.print("Número cliente: ");
+			nrCliente = scan.nextInt();
+
+			System.out.print("Password: ");
+			password = scan.next();
+
+			BdUtil.login(nrCliente, password);
+		}
+	}
+
 	//Metodo para registar um novo cliente
 	//Este metodo tambem insere os dados do cliente na base de dados
-	public void registarCliente() {
+	public static void registarCliente() {
 		Scanner scan = new Scanner(System.in);
 		int tipoCliente;
 		Cliente cliente = new Cliente();

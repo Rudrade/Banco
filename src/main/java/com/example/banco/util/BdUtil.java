@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import com.example.banco.conta.Conta;
 import com.example.banco.movimentos.Deposito;
+import com.example.banco.movimentos.Levantamento;
 import com.example.banco.pessoa.Cliente;
 
 //Class utilitária para acesso à base de dados
@@ -13,12 +14,40 @@ public class BdUtil {
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
 
+	//Metodo para levantar dinheiro
+	public static void inserirLevantamentoConta(Levantamento levantamento) {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement statementLevatamento = connection.prepareStatement("INSERT INTO levantamento (nrLevantamento, nrConta, nrCartao, montante, data) VALUES (?, ?, ?, ?, ?);");
+			PreparedStatement statementConta = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
+			double saldoAlteardo = obterConta(levantamento.getNrConta()).getSaldo() - levantamento.getMontante();
+
+			statementLevatamento.setString(1, null);
+			statementLevatamento.setInt(2, levantamento.getNrConta());
+			statementLevatamento.setString(3, null);
+			statementLevatamento.setDouble(4, levantamento.getMontante());
+			statementLevatamento.setDate(5, null);
+
+			statementConta.setDouble(1, saldoAlteardo);
+			statementConta.setInt(2, levantamento.getNrConta());
+
+			statementLevatamento.execute();
+			statementConta.execute();
+
+			statementConta.close();
+			statementLevatamento.close();
+			connection.close();
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+	}
+
 	//Metodo para inserir deposito
 	public static void inserirDeposito(Deposito deposito) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement stmtDeposito = connection.prepareStatement("INSERT INTO deposito (nrDeposito, nrConta, montante) VALUES (?, ?, ?); ");
-			PreparedStatement stmtConta = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?");
+			PreparedStatement stmtDeposito = connection.prepareStatement("INSERT INTO deposito (nrDeposito, nrConta, montante) VALUES (?, ?, ?);");
+			PreparedStatement stmtConta = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
 			double saldoAlterado = obterConta(deposito.getNrConta()).getSaldo() + deposito.getMontante();
 
 			stmtDeposito.setString(1, null);
@@ -64,7 +93,7 @@ public class BdUtil {
 			connection.close();
 			return conta;
 		} catch (SQLException e) {
-			System.out.printf("Ocorreu um erro: %s", e.getMessage());
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
 
 		return null;
@@ -99,7 +128,7 @@ public class BdUtil {
 			connection.close();
 			return cliente;
 		} catch (SQLException e) {
-			System.out.printf("Ocorreu um erro: %s", e.getMessage());
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
 
 		return null;
@@ -133,7 +162,7 @@ public class BdUtil {
 			connection.close();
 			return listaContas;
 		} catch (SQLException e) {
-			System.out.printf("Ocorreu um erro ao obter a lista de contas: %s", e.getMessage());
+			System.out.printf("Ocorreu um erro ao obter a lista de contas: %s\n", e.getMessage());
 		}
 
 		return null;
@@ -157,7 +186,7 @@ public class BdUtil {
 			stmt.close();
 			connection.close();
 		} catch (SQLException e) {
-			System.out.printf("Ocorreu um erro ao ligar à base de dados: %s", e.getMessage());
+			System.out.printf("Ocorreu um erro ao ligar à base de dados: %s\n", e.getMessage());
 		}
 	}
 
@@ -188,7 +217,7 @@ public class BdUtil {
 			stmtLogin.close();
 			connection.close();
 		} catch (SQLException e) {
-			System.out.printf("Erro ao fazer login: %s", e.getMessage());
+			System.out.printf("Erro ao fazer login: %s\n", e.getMessage());
 		}
 
 		return null;
@@ -247,7 +276,7 @@ public class BdUtil {
 		try {
 			conn = DriverManager.getConnection(BD_URL, BD_USER, BD_PASSWORD);
 		} catch (SQLException e) {
-			System.out.printf("Ocorreu um erro ao ligar à base de dados: %s", e.getMessage());
+			System.out.printf("Ocorreu um erro ao ligar à base de dados: %s\n", e.getMessage());
 		}
 		
 		return conn;

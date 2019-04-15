@@ -2,6 +2,7 @@ package com.example.banco.pessoa;
 
 import com.example.banco.conta.Conta;
 import com.example.banco.movimentos.Deposito;
+import com.example.banco.movimentos.Levantamento;
 
 import java.util.Scanner;
 
@@ -17,7 +18,8 @@ public class ClienteNormal extends Cliente{
             System.out.println("1- Listar contas");
             System.out.println("2- Listar cartões");
             System.out.println("3- Depositar");
-            System.out.println("4- Alterar dados");
+            System.out.println("4- Levantamentar");
+            System.out.println("9- Alterar dados");
             System.out.println("0- Sair");
             op = scan.nextInt();
 
@@ -31,6 +33,9 @@ public class ClienteNormal extends Cliente{
                     new Deposito().depositar(this);
                     break;
                 case 4:
+                    new Levantamento().levantarConta(this);
+                    break;
+                case 9:
                     break;
                 case 0:
                     System.exit(0);

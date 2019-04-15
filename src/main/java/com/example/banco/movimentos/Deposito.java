@@ -14,7 +14,7 @@ public class Deposito {
     private double montante;
     private LocalDateTime data;
 
-    //Metodo para depoistar dinheiro
+    //Metodo para depositar dinheiro
     //Recebe como parametro um cliente para fazer a confirmação da palavra-passe como uma forma de segurança
     public void depositar(Cliente cliente) {
         Scanner scan = new Scanner(System.in);
@@ -46,15 +46,9 @@ public class Deposito {
     //Metodo para inserir o número de conta
     //Faz a validação se o número da conta pretence ao número do cliente
     private boolean setNrConta(int nrConta, int nCliente) {
-        ArrayList<Conta> listaContas;
-
-        listaContas = BdUtil.obterContas(nCliente);
-
-        for (Conta conta : listaContas) {
-            if (conta.getIdCliente() == nCliente) {
-                this.nrConta = nrConta;
-                return true;
-            }
+        if (BdUtil.obterConta(nrConta).getIdCliente() == nCliente) {
+            this.nrConta = nrConta;
+            return true;
         }
 
         System.out.println("A conta que inseriu é inválida");

@@ -25,8 +25,7 @@ public abstract class Pesssoa {
 	}
 	
 	boolean setTelefone (int telefone) {
-		String telefoneS = "";
-		telefoneS = String.valueOf(telefone);
+		String telefoneS = String.valueOf(telefone);
 		
 		if ((telefoneS.length() == 9) && (telefoneS.startsWith("91") || telefoneS.startsWith("93") || telefoneS.startsWith("96") || telefoneS.startsWith("92"))) {
 			this.telefone = telefone;

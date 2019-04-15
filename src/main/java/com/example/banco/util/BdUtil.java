@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import com.example.banco.conta.Conta;
 import com.example.banco.movimentos.Deposito;
 import com.example.banco.movimentos.Levantamento;
+import com.example.banco.movimentos.Transferencia;
 import com.example.banco.pessoa.Cliente;
 
 //Class utilitária para acesso à base de dados
@@ -13,6 +14,41 @@ public class BdUtil {
 	private static final String BD_URL		= "jdbc:mysql://137.74.114.78:3306/banco?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
+
+	//Metodo para transferir entre contas
+	public static void transferencia(Transferencia transferencia) {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement statementTransferencia = connection.prepareStatement("INSERT INTO transferencia (nrTransferencia, nrContaOrigem, nrContaDestino, montante, data) VALUES (?, ?, ?, ?, ?);");
+			PreparedStatement statementContaOrigem = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
+			PreparedStatement statementContaDestino = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
+			double saldoOrigem = obterConta(transferencia.getNrContaOrigem()).getSaldo() - transferencia.getMontante();
+			double saldoDestino = obterConta(transferencia.getNrContaDestino()).getSaldo() + transferencia.getMontante();
+
+			statementTransferencia.setString(1, null);
+			statementTransferencia.setInt(2, transferencia.getNrContaOrigem());
+			statementTransferencia.setInt(3, transferencia.getNrContaDestino());
+			statementTransferencia.setDouble(4, transferencia.getMontante());
+			statementTransferencia.setDate(5, null);
+
+			statementContaOrigem.setDouble(1, saldoOrigem);
+			statementContaOrigem.setInt(2, transferencia.getNrContaOrigem());
+
+			statementContaDestino.setDouble(1, saldoDestino);
+			statementContaDestino.setInt(2, transferencia.getNrContaDestino());
+
+			statementTransferencia.execute();
+			statementContaOrigem.execute();
+			statementContaDestino.execute();
+
+			statementContaDestino.close();
+			statementContaOrigem.close();
+			statementTransferencia.close();
+			connection.close();
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+	}
 
 	//Metodo para levantar dinheiro
 	public static void inserirLevantamentoConta(Levantamento levantamento) {

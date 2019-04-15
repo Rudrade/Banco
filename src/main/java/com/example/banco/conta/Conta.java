@@ -75,7 +75,7 @@ public class Conta {
         return this.saldo;
     }
 
-    int getNrConta() {
+    public int getNrConta() {
         return this.nrConta;
     }
 }

@@ -6,6 +6,7 @@ import pessoa.Cliente;
 
 public class App {
     public static void main (String[] args) {
+    	Cliente cliente = new Cliente();
     	Scanner scan = new Scanner(System.in);
     	int op;
     	
@@ -19,10 +20,10 @@ public class App {
     		
     		switch (op) {
     			case 1:
-    				Cliente.login();
+    				cliente.login();
     				break;
     			case 2:
-    				Cliente.registarCliente();
+    				cliente.registarCliente();
     				break;
     			case 0:
     				System.exit(0);

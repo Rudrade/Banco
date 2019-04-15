@@ -6,26 +6,29 @@ import util.BdUtil;
 
 //Class Cliente
 public class Cliente extends Pesssoa {
+	private int nrCliente;
 	private String password;
 	private String tipoCliente;
 
 	//Metodo para um cliente fazer login
-	public static void login() {
+	public void login() {
 		Scanner scan = new Scanner(System.in);
-		int nrCliente;
+		int nCliente;
 		String password;
 
 		while (true) {
 			System.out.println();
 			System.out.println("Menu - Login");
 			System.out.print("Número cliente: ");
-			nrCliente = scan.nextInt();
+			nCliente = scan.nextInt();
 
 			System.out.print("Password: ");
 			password = scan.next();
 
-			switch(BdUtil.login(nrCliente, password)) {
+			switch(BdUtil.login(nCliente, password)) {
                 case "normal":
+                	this.setNrCliente(nCliente);
+                	new ClienteNormal(this.getNrCliente()).loginNormal();
                     break;
                 case "vip":
                     break;
@@ -39,10 +42,9 @@ public class Cliente extends Pesssoa {
 
 	//Metodo para registar um novo cliente
 	//Este metodo tambem insere os dados do cliente na base de dados
-	public static void registarCliente() {
+	public void registarCliente() {
 		Scanner scan = new Scanner(System.in);
 		int tipoCliente;
-		Cliente cliente = new Cliente();
 		
 		TIPO: do {
 			System.out.println();
@@ -54,10 +56,11 @@ public class Cliente extends Pesssoa {
 		
 			switch (tipoCliente) {
 				case 1:
-					cliente.setTipoCliente("normal");
+					this.setTipoCliente("normal");
+					new ClienteNormal(this.getNrCliente()).loginNormal();
 					break TIPO;
 				case 2:
-					cliente.setTipoCliente("vip");
+					this.setTipoCliente("vip");
 					break TIPO;
 				case 0:
 					return;
@@ -68,29 +71,48 @@ public class Cliente extends Pesssoa {
 		
 		System.out.println();
 		System.out.print("Nome: ");
-		cliente.setNome(scan.next());
+		this.setNome(scan.next());
 		
 		System.out.print("Morada: ");
-		cliente.setMorada(scan.next());
+		this.setMorada(scan.next());
 		
 		do {
 			System.out.print("Telefone: ");
-		} while (!cliente.setTelefone(scan.nextInt()));
+		} while (!this.setTelefone(scan.nextInt()));
 		
 		do {
 			System.out.print("Email: ");
-		} while (!cliente.setEmail(scan.next()));
+		} while (!this.setEmail(scan.next()));
 		
 		System.out.print("Profissão: ");
-		cliente.setProfissao(scan.next());
+		this.setProfissao(scan.next());
 		
 		do {
 			System.out.print("Password: ");
-		} while (!cliente.setPassword(scan.next()));
+		} while (!this.setPassword(scan.next()));
 		
-		BdUtil.registarCliente(cliente);
+		BdUtil.registarCliente(this);
 	}
-	
+
+	private Cliente (int nrCliente, String password, String tipoCliente, String nome, String morada, int telefone, String email, String profissao) {
+		this.setNrCliente(nrCliente);
+		this.setPassword(password);
+		this.setTipoCliente(tipoCliente);
+		this.setNome(nome);
+		this.setMorada(morada);
+		this.setTelefone(telefone);
+		this.setEmail(email);
+		this.setProfissao(profissao);
+	}
+
+	void setNrCliente(int nrCliente) {
+		this.nrCliente = nrCliente;
+	}
+
+	public int getNrCliente() {
+		return this.nrCliente;
+	}
+
 	boolean setPassword(String password) {
 		if (password.length() >= 8) {
 			this.password = password;
@@ -114,5 +136,9 @@ public class Cliente extends Pesssoa {
 		if (tipoCliente.equals("vip") || tipoCliente.equals("normal")) {
 			this.tipoCliente = tipoCliente;
 		}
+	}
+
+	public Cliente() {
+
 	}
 }

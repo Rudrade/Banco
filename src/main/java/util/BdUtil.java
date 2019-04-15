@@ -1,8 +1,9 @@
 package util;
 
 import java.sql.*;
-import java.time.LocalDate;
+import java.util.ArrayList;
 
+import conta.Conta;
 import pessoa.Cliente;
 
 //Class utilitária para acesso à base de dados
@@ -10,6 +11,36 @@ public class BdUtil {
 	private static final String BD_URL		= "jdbc:mysql://137.74.114.78:3306/banco?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
+
+	//Metodo para fazer o display de todas as contas de um dado cliente
+	public static ArrayList<Conta> obterContas(int nrCliente) {
+		try {
+			PreparedStatement stmt = getConnection().prepareStatement("SELECT * FROM conta WHERE idCliente = ?;");
+			ResultSet rs = null;
+			ArrayList<Conta> listaContas = new ArrayList<Conta>();
+
+			stmt.setInt(1, nrCliente);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				listaContas.add(
+						new Conta(
+								rs.getInt("nrConta"),
+								rs.getDouble("saldo"),
+								rs.getDouble("juros"),
+								rs.getString("tpConta"),
+								rs.getInt("idCliente")
+						)
+				);
+			}
+
+			return listaContas;
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro ao obter a lista de contas: %s", e.getCause());
+		}
+
+		return null;
+	}
 
 	//Metodo para fazer  o display de todos os clientes
 	public static void displayClientes() {

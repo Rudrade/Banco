@@ -1,8 +1,8 @@
-package pessoa;
+package com.example.banco.pessoa;
 
 //Class Pessoa
 public abstract class Pesssoa {
-	private int idPessoa = 0;
+	private int idPessoa;
 	private String nome;
 	private String morada;
 	private int telefone;
@@ -37,7 +37,11 @@ public abstract class Pesssoa {
 			return false;
 		}
 	}
-	
+
+	void setIdPessoa (int idPessoa) {
+		this.idPessoa = idPessoa;
+	}
+
 	void setMorada (String morada) {
 		this.morada = morada;
 	}
@@ -64,5 +68,9 @@ public abstract class Pesssoa {
 
 	public String getProfissao() {
 		return profissao;
+	}
+
+	public int getIdPessoa() {
+		return this.idPessoa;
 	}
 }

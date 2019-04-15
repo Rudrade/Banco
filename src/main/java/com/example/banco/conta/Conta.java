@@ -1,7 +1,7 @@
-package conta;
+package com.example.banco.conta;
 
-import pessoa.Cliente;
-import util.BdUtil;
+import com.example.banco.pessoa.Cliente;
+import com.example.banco.util.BdUtil;
 
 import java.util.ArrayList;
 
@@ -59,7 +59,7 @@ public class Conta {
         }
     }
 
-    int getIdCliente() {
+    public int getIdCliente() {
         return this.idCliente;
     }
 
@@ -71,7 +71,7 @@ public class Conta {
         return this.juros;
     }
 
-    double getSaldo() {
+    public double getSaldo() {
         return this.saldo;
     }
 

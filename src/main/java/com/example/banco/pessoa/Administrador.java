@@ -1,6 +1,6 @@
-package pessoa;
+package com.example.banco.pessoa;
 
-import util.BdUtil;
+import com.example.banco.util.BdUtil;
 
 import java.util.Scanner;
 

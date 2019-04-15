@@ -1,4 +1,4 @@
-package conta;
+package com.example.banco.conta;
 
 public class ContaOrdem extends Conta {
 

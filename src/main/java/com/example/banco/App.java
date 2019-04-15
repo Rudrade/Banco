@@ -2,7 +2,7 @@ package com.example.banco;
 
 import java.util.Scanner;
 
-import pessoa.Cliente;
+import com.example.banco.pessoa.Cliente;
 
 public class App {
     public static void main (String[] args) {

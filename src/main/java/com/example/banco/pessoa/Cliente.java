@@ -1,8 +1,8 @@
-package pessoa;
+package com.example.banco.pessoa;
 
 import java.util.Scanner;
 
-import util.BdUtil;
+import com.example.banco.util.BdUtil;
 
 //Class Cliente
 public class Cliente extends Pesssoa {
@@ -13,6 +13,7 @@ public class Cliente extends Pesssoa {
 	//Metodo para um cliente fazer login
 	public void login() {
 		Scanner scan = new Scanner(System.in);
+		Cliente clienteLogin = null;
 		int nCliente;
 		String password;
 
@@ -27,8 +28,18 @@ public class Cliente extends Pesssoa {
 
 			switch(BdUtil.login(nCliente, password)) {
                 case "normal":
-                	this.setNrCliente(nCliente);
-                	new ClienteNormal(this.getNrCliente()).loginNormal();
+                	clienteLogin = BdUtil.obterCliente(nCliente);
+                	new ClienteNormal(
+                			clienteLogin.getNrCliente(),
+							clienteLogin.getPassword(),
+							clienteLogin.getTipoCliente(),
+							clienteLogin.getIdPessoa(),
+							clienteLogin.getNome(),
+							clienteLogin.getMorada(),
+							clienteLogin.nrCliente,
+							clienteLogin.getEmail(),
+							clienteLogin.getProfissao()
+					).loginNormal();
                     break;
                 case "vip":
                     break;
@@ -57,7 +68,6 @@ public class Cliente extends Pesssoa {
 			switch (tipoCliente) {
 				case 1:
 					this.setTipoCliente("normal");
-					new ClienteNormal(this.getNrCliente()).loginNormal();
 					break TIPO;
 				case 2:
 					this.setTipoCliente("vip");
@@ -94,7 +104,7 @@ public class Cliente extends Pesssoa {
 		BdUtil.registarCliente(this);
 	}
 
-	private Cliente (int nrCliente, String password, String tipoCliente, String nome, String morada, int telefone, String email, String profissao) {
+	public Cliente (int nrCliente, String password, String tipoCliente, String nome, String morada, int telefone, String email, String profissao) {
 		this.setNrCliente(nrCliente);
 		this.setPassword(password);
 		this.setTipoCliente(tipoCliente);

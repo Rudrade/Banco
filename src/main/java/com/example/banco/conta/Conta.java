@@ -12,7 +12,28 @@ public class Conta {
     private double juros;
     private String tipoConta;
     private int idCliente;
-
+    
+    //Metodo para apagar conta
+    public void desativarConta(Cliente cliente) {
+    	Scanner scan = new Scanner(System.in);
+    	int nConta;
+    	String password;
+    	
+    	System.out.println();
+    	System.out.print("Número da conta:");
+    	nConta = scan.nextInt();
+    	
+    	System.out.print("Password:");
+    	password = scan.next();
+    	
+    	if (BdUtil.obterCliente(cliente.getNrCliente()).getPassword().equals(password)) {
+    		BdUtil.desativarConta(nConta);
+    	}
+    	else {
+    		System.out.println("Conta ou password inválido");
+    	}
+    }
+    
     //Metodo para perguntar qual o tipo de conta a criar
     public void criarConta(Cliente cliente) {
     	Scanner scan = new Scanner(System.in);

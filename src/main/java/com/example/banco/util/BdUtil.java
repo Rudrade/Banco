@@ -15,6 +15,24 @@ public class BdUtil {
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
 
+	//Metodo para apagar uma conta
+	public static void desativarConta(int nrConta) {
+		try {
+			Connection conn = getConnection();
+			PreparedStatement stmt = conn.prepareStatement("UPDATE conta SET ativo = false WHERE nrConta = ?;");
+			
+			stmt.setInt(1, nrConta);
+			
+			stmt.execute();
+			
+			stmt.close();
+			conn.close();
+			System.out.println("Conta desativada com sucesso");
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+	}
+	
 	//Metodo para criar uma conta
 	public static void criarConta(Conta conta) {
 		try {
@@ -203,15 +221,17 @@ public class BdUtil {
 			rs = stmt.executeQuery();
 
 			while (rs.next()) {
+				if (rs.getBoolean("ativo")) {
 				listaContas.add(
-						new Conta(
-								rs.getInt("nrConta"),
-								rs.getDouble("saldo"),
-								rs.getDouble("juros"),
-								rs.getString("tpConta"),
-								rs.getInt("idCliente")
-						)
-				);
+							new Conta(
+									rs.getInt("nrConta"),
+									rs.getDouble("saldo"),
+									rs.getDouble("juros"),
+									rs.getString("tpConta"),
+									rs.getInt("idCliente")
+								)
+						);
+				}
 			}
 
 			rs.close();

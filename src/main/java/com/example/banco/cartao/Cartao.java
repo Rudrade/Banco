@@ -11,6 +11,24 @@ public class Cartao {
 	private int nrConta;
 	private String tipoCartao;
 	
+	//Metodo para desativar cartao
+	public void desativarCartao(int nrCliente) {
+		Scanner scan = new Scanner(System.in);
+		int nCartao;
+		String password;
+		
+		System.out.println();
+		System.out.println("Cartão a desativar: ");
+		nCartao = scan.nextInt();
+		
+		System.out.println("Password:");
+		password = scan.next();
+		
+		if (BdUtil.obterCliente(nrCliente).getPassword() == password) {
+			BdUtil.desativarCartao(nCartao);
+		}
+	}
+	
 	//Metodo para listar cartao
 	public void displayCartao(int nrCliente) {
 		ArrayList<Cartao> listaCartao = BdUtil.obterCartoes(nrCliente);

@@ -20,6 +20,52 @@ public class BdUtil {
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
 	
+	//Metodo para desativar cartao
+	public static void desativarCartao(int nrCartao) {
+		try {
+			Connection conn = getConnection();
+			PreparedStatement stmt = conn.prepareStatement("UPDATE cartao SET ativo = false WHERE nrCartao = ?;");
+			
+			stmt.setInt(1, nrCartao);
+			stmt.execute();
+			
+			stmt.close();
+			conn.close();
+			
+			System.out.println("Cartão desativado com sucesso");
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+	}
+	
+	//Metodo para obter cartao
+	public static Cartao obterCartao(int nrCartao) {
+		try {
+			Connection conn = getConnection();
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM cartao WHERE nrCartao = ?;");
+			ResultSet rs = null;
+			
+			stmt.setInt(1, nrCartao);
+			rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+				return new Cartao(
+						rs.getInt("nrConta"),
+						rs.getInt("nrCartao"),
+						rs.getString("tpCartao")
+					);
+			}
+			
+			conn.close();
+			rs.close();
+			conn.close();
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+		
+		return null;
+	}
+	
 	//Metodo para obter cartoes
 	public static ArrayList<Cartao> obterCartoes(int nrCliente) {
 		try {

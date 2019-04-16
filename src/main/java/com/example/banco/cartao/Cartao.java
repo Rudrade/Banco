@@ -1,5 +1,6 @@
 package com.example.banco.cartao;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import com.example.banco.conta.Conta;
@@ -10,6 +11,18 @@ public class Cartao {
 	private int nrConta;
 	private String tipoCartao;
 	
+	//Metodo para listar cartao
+	public void displayCartao(int nrCliente) {
+		ArrayList<Cartao> listaCartao = BdUtil.obterCartoes(nrCliente);
+		
+		for (Cartao cartao : listaCartao) {
+			System.out.printf("\nNº cartão:%d\n", cartao.getNrCartao());
+			System.out.printf("Conta:%d\n", cartao.getNrConta());
+			System.out.printf("Tipo: %s\n", cartao.getTipoCartao());
+		}
+	}
+	
+	//Metodo para criar cartao
 	public void criarCartao(Conta conta) {
 		Scanner scan = new Scanner(System.in);
 		int tCartao;
@@ -62,5 +75,19 @@ public class Cartao {
 		if (tipoCartao.equals("Crédito") || tipoCartao.equals("Débito")) {
 			this.tipoCartao = tipoCartao;
 		}
+	}
+	
+	private void setNrCartao(int nrCartao) {
+		this.nrCartao = nrCartao;
+	}
+	
+	public Cartao(int nrConta, int nrCartao, String tipoCartao) {
+		this.setNrConta(nrConta);
+		this.setTipoCartao(tipoCartao);
+		this.setNrCartao(nrCartao);
+	}
+	
+	public Cartao() {
+		
 	}
 }

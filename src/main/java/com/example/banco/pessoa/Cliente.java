@@ -36,7 +36,7 @@ public class Cliente extends Pesssoa {
 							clienteLogin.getIdPessoa(),
 							clienteLogin.getNome(),
 							clienteLogin.getMorada(),
-							clienteLogin.nrCliente,
+							clienteLogin.getTelefone(),
 							clienteLogin.getEmail(),
 							clienteLogin.getProfissao()
 					).loginNormal();

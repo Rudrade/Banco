@@ -20,6 +20,37 @@ public class BdUtil {
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
 	
+	//Metodo para obter cartoes
+	public static ArrayList<Cartao> obterCartoes(int nrCliente) {
+		try {
+			ArrayList<Cartao> listaCartao = new ArrayList<Cartao>();
+			Connection conn = getConnection();
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM cartao INNER JOIN conta ON cartao.nrConta = conta.nrConta WHERE conta.idCliente = ?;");
+			ResultSet rs = null;
+			
+			stmt.setInt(1, nrCliente);
+			rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+				listaCartao.add(new Cartao(
+						rs.getInt("nrConta"),
+						rs.getInt("nrCartao"),
+						rs.getString("tpCartao")
+						));
+			}	
+			
+			rs.close();
+			stmt.close();
+			conn.close();
+			
+			return listaCartao;
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+		
+		return null;
+	}
+	
 	//Metodo para criar um cartao
 	public static void criarCartao(Cartao cartao) {
 		try {

@@ -35,6 +35,7 @@ public class ClienteNormal extends Cliente{
                     new Conta().displayConta(this);
                     break;
                 case 2:
+                	new Cartao().displayCartao(this.getNrCliente());
                     break;
                 case 3:
                     new Deposito().depositar(this);

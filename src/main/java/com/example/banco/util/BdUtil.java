@@ -15,6 +15,27 @@ public class BdUtil {
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
 
+	//Metodo para criar uma conta
+	public static void criarConta(Conta conta) {
+		try {
+			Connection conn = getConnection();
+			PreparedStatement stmt = conn.prepareStatement("INSERT INTO conta (nrConta, saldo, juros, tpConta, idCliente) VALUES (?, ?, ?, ?, ?);");
+			
+			stmt.setString(1, null);
+			stmt.setDouble(2, conta.getSaldo());
+			stmt.setDouble(3, conta.getJuros());
+			stmt.setString(4, conta.getTipoConta());
+			stmt.setInt(5, conta.getIdCliente());
+			
+			stmt.execute();
+			
+			stmt.close();
+			conn.close();
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+	}
+	
 	//Metodo para transferir entre contas
 	public static void transferencia(Transferencia transferencia) {
 		try {

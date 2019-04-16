@@ -21,6 +21,7 @@ public class ClienteNormal extends Cliente{
             System.out.println("3- Depositar");
             System.out.println("4- Levantamentar");
             System.out.println("5- Transferencia");
+            System.out.println("6- Criar Conta");
             System.out.println("9- Alterar dados");
             System.out.println("0- Sair");
             op = scan.nextInt();
@@ -40,6 +41,9 @@ public class ClienteNormal extends Cliente{
                 case 5:
                     new Transferencia().transferir(this);
                     break;
+                case 6:
+                	new Conta().criarConta(this);
+                	break;
                 case 9:
                     break;
                 case 0:

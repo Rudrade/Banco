@@ -1,17 +1,45 @@
 package com.example.banco.conta;
 
+import java.util.ArrayList;
+import java.util.Scanner;
+
 import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
-
-import java.util.ArrayList;
 
 public class Conta {
     private int nrConta;
     private double saldo;
-    private double juros = 0.0;
+    private double juros;
     private String tipoConta;
     private int idCliente;
 
+    //Metodo para perguntar qual o tipo de conta a criar
+    public void criarConta(Cliente cliente) {
+    	Scanner scan = new Scanner(System.in);
+    	int tipoConta;
+    	
+    	CRIAR: do {
+    		System.out.println();
+    		System.out.println("1- Poupança");
+    		System.out.println("2- Depósito a prazo");
+    		tipoConta = scan.nextInt();
+    		
+    		switch (tipoConta) {
+			case 1:
+				ContaPoupanca conta = new ContaPoupanca(cliente);
+				BdUtil.criarConta(conta);
+				System.out.println("Conta criada com sucesso.");
+				break CRIAR;
+			case 2:
+				ContaDeposito contaD = new ContaDeposito(cliente);
+				BdUtil.criarConta(contaD);
+				break CRIAR;
+			default:
+				System.out.println("Opção inserida inválida");
+			}
+    	} while (tipoConta != 0);
+    }
+    
     //Metodo para fazer o display de todas as contas de um dado cliente
     public void displayConta(Cliente cliente) {
         ArrayList<Conta> listaContas = BdUtil.obterContas(cliente.getNrCliente());
@@ -34,18 +62,18 @@ public class Conta {
     }
 
     public Conta() {
-
+    	this.setSaldo(0);
     }
 
-    private void setIdCliente(int idCliente) {
+    protected void setIdCliente(int idCliente) {
         this.idCliente = idCliente;
     }
 
-    private void setJuros(double juros) {
+    protected void setJuros(double juros) {
         this.juros = juros;
     }
 
-    private void setSaldo(double saldo) {
+    protected void setSaldo(double saldo) {
         this.saldo = saldo;
     }
 
@@ -54,7 +82,7 @@ public class Conta {
     }
 
     public void setTipoConta(String tipoConta) {
-        if (tipoConta.equals("Ordem") || tipoConta.equals("Investimento") || tipoConta.equals("Poupança")) {
+        if (tipoConta.equals("Ordem") || tipoConta.equals("Investimento") || tipoConta.equals("Poupança") || tipoConta.equals("Depósito a prazo")) {
             this.tipoConta = tipoConta;
         }
     }
@@ -63,11 +91,12 @@ public class Conta {
         return this.idCliente;
     }
 
-    String getTipoConta(){
+    
+    public String getTipoConta(){
         return this.tipoConta;
     }
 
-    double getJuros() {
+    public double getJuros() {
         return this.juros;
     }
 

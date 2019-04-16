@@ -13,7 +13,7 @@ public class Conta {
     private String tipoConta;
     private int idCliente;
     
-    //Metodo para apagar conta
+    //Metodo para desativar conta
     public void desativarConta(Cliente cliente) {
     	Scanner scan = new Scanner(System.in);
     	int nConta;
@@ -54,6 +54,7 @@ public class Conta {
 			case 2:
 				ContaDeposito contaD = new ContaDeposito(cliente);
 				BdUtil.criarConta(contaD);
+				System.out.println("Conta criada com sucesso.");
 				break CRIAR;
 			default:
 				System.out.println("Opção inserida inválida");

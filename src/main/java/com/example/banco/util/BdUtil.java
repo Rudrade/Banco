@@ -1,8 +1,13 @@
 package com.example.banco.util;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
+import com.example.banco.cartao.Cartao;
 import com.example.banco.conta.Conta;
 import com.example.banco.movimentos.Deposito;
 import com.example.banco.movimentos.Levantamento;
@@ -14,7 +19,29 @@ public class BdUtil {
 	private static final String BD_URL		= "jdbc:mysql://137.74.114.78:3306/banco?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
-
+	
+	//Metodo para criar um cartao
+	public static void criarCartao(Cartao cartao) {
+		try {
+			Connection conn = getConnection();
+			PreparedStatement stmt = conn.prepareStatement("INSERT INTO cartao (nrConta, tpCartao, ativo, nrCartao) VALUES (?, ?, ?,?);");
+			
+			stmt.setInt(1, cartao.getNrConta());
+			stmt.setString(2, cartao.getTipoCartao());
+			stmt.setBoolean(3, true);
+			stmt.setString(4, null);
+			
+			stmt.execute();
+			
+			stmt.close();
+			conn.close();
+			
+			System.out.println("Cartão criado com sucesso.");
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+	}
+	
 	//Metodo para apagar uma conta
 	public static void desativarConta(int nrConta) {
 		try {
@@ -93,7 +120,7 @@ public class BdUtil {
 	public static void inserirLevantamentoConta(Levantamento levantamento) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement statementLevatamento = connection.prepareStatement("INSERT INTO levantamento (nrLevantamento, nrConta, nrCartao, montante, data) VALUES (?, ?, ?, ?, ?);");
+			PreparedStatement statementLevatamento = connection.prepareStatement("INSERT INTO levantamento (nrLevantamento, nrConta, nCartao, montante, data) VALUES (?, ?, ?, ?, ?);");
 			PreparedStatement statementConta = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
 			double saldoAlteardo = obterConta(levantamento.getNrConta()).getSaldo() - levantamento.getMontante();
 

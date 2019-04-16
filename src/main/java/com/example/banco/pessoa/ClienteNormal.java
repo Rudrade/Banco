@@ -1,9 +1,11 @@
 package com.example.banco.pessoa;
 
+import com.example.banco.cartao.Cartao;
 import com.example.banco.conta.Conta;
 import com.example.banco.movimentos.Deposito;
 import com.example.banco.movimentos.Levantamento;
 import com.example.banco.movimentos.Transferencia;
+import com.example.banco.util.BdUtil;
 
 import java.util.Scanner;
 
@@ -23,6 +25,7 @@ public class ClienteNormal extends Cliente{
             System.out.println("5- Transferencia");
             System.out.println("6- Criar Conta");
             System.out.println("7- Desativar Conta");
+            System.out.println("8- Criar cartão");
             System.out.println("9- Alterar dados");
             System.out.println("0- Sair");
             op = scan.nextInt();
@@ -47,6 +50,13 @@ public class ClienteNormal extends Cliente{
                 	break;
                 case 7:
                 	new Conta().desativarConta(this);
+                	break;
+                case 8:
+                	System.out.print("Conta a criar o cartão: ");
+                	Conta conta = BdUtil.obterConta(scan.nextInt());
+                	if (conta.getIdCliente() == this.getNrCliente()) {
+                		new Cartao().criarCartao(conta);
+                	}
                 	break;
                 case 9:
                     break;

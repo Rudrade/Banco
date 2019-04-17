@@ -16,6 +16,33 @@ public class BdUtil {
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
 
+	//Metodo para obter um cartao
+	public static Cartao obterCartao(int nrCartao) {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement stmt = connection.prepareStatement("SELECT * FROM cartao WHERE nrCartao = ?;");
+			ResultSet rs;
+
+			stmt.setInt(1, nrCartao);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				return new Cartao(
+						BdUtil.obterConta(rs.getInt("nrConta")),
+						rs.getInt("nrCartao"),
+						rs.getString("tpCartao"),
+						rs.getBoolean("ativo")
+				);
+			}
+
+			return null;
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+
+		return null;
+	}
+
 	//Metodo para obter transferencia
 	public static ArrayList<Transferencia> obterTransferencia(Conta conta) {
 		try {
@@ -74,7 +101,7 @@ public class BdUtil {
 	public static ArrayList<Deposito> obterDepositos(Conta conta) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement stmt = connection.prepareStatement("SELECT nrDeposito, deposito.nrConta, montante FROM deposito INNER JOIN conta ON deposito.nrConta = conta.nrconta WHERE idCliente = ?;");
+			PreparedStatement stmt = connection.prepareStatement("SELECT nrDeposito, deposito.nrConta, montante, deposito.nrCartao FROM deposito INNER JOIN conta ON deposito.nrConta = conta.nrconta INNER JOIN cartao ON deposito.nrCartao = cartao.nrCartao WHERE idCliente = ?;");
 			ResultSet rs;
 			ArrayList<Deposito> lista = new ArrayList<>();
 
@@ -85,7 +112,8 @@ public class BdUtil {
 				lista.add(new Deposito(
 						rs.getInt("nrDeposito"),
 						BdUtil.obterConta(rs.getInt("nrConta")),
-						rs.getDouble("montante")
+						rs.getDouble("montante"),
+						BdUtil.obterCartao(rs.getInt("nrCartao"))
 				));
 			}
 
@@ -267,17 +295,28 @@ public class BdUtil {
 	public static void inserirDeposito(Deposito deposito) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement stmtDeposito = connection.prepareStatement("INSERT INTO deposito (nrDeposito, nrConta, montante) VALUES (?, ?, ?);");
+			PreparedStatement stmtDeposito = connection.prepareStatement("INSERT INTO deposito (nrDeposito, nrConta, montante, nrCartao) VALUES (?, ?, ?, ?);");
 			PreparedStatement stmtConta = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
-			double saldoAlterado = deposito.getConta().getSaldo() + deposito.getMontante();
+			double saldoAlterado;
 
 			stmtDeposito.setString(1, null);
-			stmtDeposito.setInt(2, deposito.getConta().getNrConta());
+			if (deposito.getCartao() != null) {
+				stmtDeposito.setInt(2, deposito.getCartao().getConta().getNrConta());
+				stmtDeposito.setInt(4, deposito.getCartao().getNrCartao());
+				saldoAlterado = deposito.getCartao().getConta().getSaldo();
+				stmtConta.setInt(2, deposito.getCartao().getConta().getNrConta());
+			}
+			else {
+				stmtDeposito.setInt(2, deposito.getConta().getNrConta());
+				stmtDeposito.setString(4, null);
+				saldoAlterado = deposito.getConta().getSaldo();
+				stmtConta.setInt(2, deposito.getConta().getNrConta());
+			}
 			stmtDeposito.setDouble(3,deposito.getMontante());
 			stmtDeposito.execute();
 
-			stmtConta.setDouble(1, saldoAlterado);
-			stmtConta.setInt(2, deposito.getConta().getNrConta());
+			stmtConta.setDouble(1, saldoAlterado += deposito.getMontante());
+
 			stmtConta.execute();
 
 			close(connection, stmtConta, stmtDeposito);

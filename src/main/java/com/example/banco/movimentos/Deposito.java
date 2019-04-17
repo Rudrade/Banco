@@ -5,12 +5,11 @@ import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Deposito {
     private int nrDeposito;
-    private int nrConta;
+    private Conta conta;
     private double montante;
     private LocalDateTime data;
 
@@ -20,14 +19,18 @@ public class Deposito {
         Scanner scan = new Scanner(System.in);
 
         System.out.println();
-        do {
-            System.out.print("Conta a depositar: ");
-        } while (!setNrConta(scan.nextInt(), cliente.getNrCliente()));
+        System.out.print("Conta a depositar: ");
+        this.setConta(BdUtil.obterConta(scan.nextInt()));
+        if (!(this.getConta().getEstado() && this.getConta().getCliente().getNrCliente() == cliente.getNrCliente())) {
+            System.out.println("Conta inserida inativa ou inválida");
+            return;
+        }
 
         System.out.print("Password: ");
         if (cliente.getPassword().equals(scan.next())) {
             System.out.print("Total a depositar: ");
             this.setMontante(scan.nextDouble());
+            System.out.println("A processar...");
             BdUtil.inserirDeposito(this);
 
             System.out.println("Deposito feito com sucesso.");
@@ -37,34 +40,43 @@ public class Deposito {
         }
     }
 
+    public void depositoDetalhe(Deposito deposito) {
+        System.out.println();
+        System.out.printf("Nº: %d\n", deposito.getNrDeposito());
+        System.out.printf("Conta: %s\n", deposito.getConta().getNrConta());
+        System.out.printf("Montante: %.2f\n", deposito.getMontante());
+    }
+
+    public Deposito(int nrDeposito, Conta conta, double montante) {
+        this.setMontante(montante);
+        this.setConta(conta);
+        this.setNrDeposito(nrDeposito);
+    }
+
+    private void setNrDeposito(int nrDeposito) {
+        this.nrDeposito = nrDeposito;
+    }
+
     private void setMontante(double montante) {
         if (montante > 0) {
             this.montante = montante;
         }
     }
 
-    //Metodo para inserir o número de conta
-    //Faz a validação se o número da conta pretence ao número do cliente
-    private boolean setNrConta(int nrConta, int nCliente) {
-        if (BdUtil.obterConta(nrConta).getIdCliente() == nCliente) {
-            this.nrConta = nrConta;
-            return true;
-        }
-
-        System.out.println("A conta que inseriu é inválida");
-        return false;
-    }
-
     public double getMontante() {
         return this.montante;
     }
 
-    public int getNrConta() {
-        return this.nrConta;
-    }
-
     public int getNrDeposito() {
         return this.nrDeposito;
+    }
+
+    public Conta getConta(){
+        return this.conta;
+    }
+
+    private void setConta(Conta conta) {
+        this.conta = conta;
     }
 
     public Deposito() {

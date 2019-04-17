@@ -5,13 +5,12 @@ import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Transferencia {
     private int nrTransferencia;
-    private int nrContaOrigem;
-    private int nrContaDestino;
+    private Conta contaOrigem;
+    private Conta contaDestino;
     private double montante;
     private LocalDateTime data;
 
@@ -21,20 +20,23 @@ public class Transferencia {
         Scanner scan = new Scanner(System.in);
 
         System.out.println();
-        do {
-            System.out.print("Conta origem: ");
-        } while (!setNrContaOrigem(scan.nextInt(), cliente.getNrCliente()));
+        System.out.print("Conta origem: ");
+        setContaOrigem(BdUtil.obterConta(scan.nextInt()));
 
-        do {
-            System.out.print("Conta destino: ");
-        } while (!setNrContaDestino(scan.nextInt()));
+        System.out.print("Conta destino: ");
+        setContaDestino(BdUtil.obterConta(scan.nextInt()));
+
+        if (!(getContaOrigem().getEstado() && getContaDestino().getEstado() && getContaOrigem().getCliente().getNrCliente() == cliente.getNrCliente())) {
+            System.out.println("Conta(s) inválida(s) ou inativa(s)");
+            return;
+        }
 
         System.out.print(("Password: "));
-        if (cliente.getPassword().equals(scan.next())) {
+        if (this.getContaOrigem().getCliente().getPassword().equals(scan.next())) {
             System.out.print("Total a transferir: ");
             if (this.setMontante(scan.nextDouble())) {
+                System.out.println("A processar...");
                 BdUtil.transferencia(this);
-
                 System.out.println("Transferência realizada com sucesso");
             }
         }
@@ -43,50 +45,34 @@ public class Transferencia {
         }
     }
 
-    //Metodo para inserir o número de conta origem
-    //Faz a validação se o número da conta pretence ao número do cliente
-    private boolean setNrContaOrigem(int nrContaOrigem, int nCliente) {
-        if (BdUtil.obterConta(nrContaOrigem).getIdCliente() == nCliente) {
-            this.nrContaOrigem = nrContaOrigem;
-            return true;
-        }
-
-        System.out.println("A conta que inseriu é inválida");
-        return false;
-    }
-
-    //Metodo para inserir o número de conta destino
-    //Faz a validação se o número da conta existe
-    private boolean setNrContaDestino(int nrContaDestino) {
-        if (BdUtil.obterConta(nrContaDestino).getNrConta() == nrContaDestino) {
-            this.nrContaDestino = nrContaDestino;
-            return true;
-        }
-
-        System.out.println("A conta que inseriu é inválida");
-        return false;
-    }
-
     private boolean setMontante(double montante) {
-        if (montante > 0 && BdUtil.obterConta(this.getNrContaOrigem()).getSaldo() >= montante) {
+        //if (montante > 0 && BdUtil.obterConta(this.getNrContaOrigem()).getSaldo() >= montante) {
             this.montante = montante;
             return true;
-        }
+        /*}
         else {
             System.out.println("Montante inválido");
             return false;
-        }
+        }*/
     }
 
     public double getMontante() {
         return this.montante;
     }
 
-    public int getNrContaDestino() {
-        return this.nrContaDestino;
+    public Conta getContaDestino(){
+        return this.contaDestino;
     }
 
-    public int getNrContaOrigem() {
-        return this.nrContaOrigem;
+    private void setContaDestino(Conta conta) {
+        this.contaDestino = conta;
+    }
+
+    public Conta getContaOrigem(){
+        return this.contaOrigem;
+    }
+
+    private void setContaOrigem(Conta conta) {
+        this.contaOrigem = conta;
     }
 }

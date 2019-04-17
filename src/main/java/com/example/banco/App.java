@@ -16,6 +16,7 @@ public class App {
     		System.out.println("1- Login");
     		System.out.println("2- Registo");
     		System.out.println("0- Sair");
+    		System.out.print("Opção: ");
     		op = scan.nextInt();
     		
     		switch (op) {

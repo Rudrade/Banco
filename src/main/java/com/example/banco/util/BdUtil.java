@@ -1,10 +1,6 @@
 package com.example.banco.util;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
 import com.example.banco.cartao.Cartao;
@@ -19,7 +15,62 @@ public class BdUtil {
 	private static final String BD_URL		= "jdbc:mysql://137.74.114.78:3306/banco?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
-	
+/*
+	//Metodo para devolver os deposito ou levantamento
+	public static ArrayList<Deposito> obterDepLev(String movimento, int nrConta) {
+		try {
+			Connection conn = getConnection();
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM deposito WHERE nrConta = ?;");
+			ResultSet rs = null;
+			ArrayList lista;
+/*
+			if (movimento.toLowerCase().equals("levantamento")) {
+				lista = new ArrayList<Levantamento>();
+
+				stmt.setString(1, "levantamento");
+				stmt.setInt(2, nrConta);
+				rs = stmt.executeQuery();
+
+				while (rs.next()) {
+					lista.add(new Levantamento(
+							rs.getInt("nrLevantamento"),
+							rs.getInt("nrConta"),
+							rs.getDouble("montante")
+					));
+				}
+
+				rs.close();
+				stmt.close();
+				conn.close();
+				return lista;
+			}
+			else if (movimento.toLowerCase().equals("deposito")) {
+			lista = new ArrayList<Deposito>();
+
+				stmt.setInt(1, nrConta);
+				rs = stmt.executeQuery();
+
+				while (rs.next()) {
+					lista.add(new Deposito(
+							rs.getInt("nrDeposito"),
+							rs.getInt("nrConta"),
+							rs.getDouble("montante")
+					));
+				}
+
+				rs.close();
+				stmt.close();
+				conn.close();
+				return lista;
+			//}
+			//return null;
+		} catch (SQLException e){
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+
+		return null;
+	}*/
+
 	//Metodo para desativar cartao
 	public static void desativarCartao(int nrCartao) {
 		try {
@@ -39,7 +90,7 @@ public class BdUtil {
 	}
 	
 	//Metodo para obter cartao
-	public static Cartao obterCartao(int nrCartao) {
+	/*public static Cartao obterCartao(int nrCartao) {
 		try {
 			Connection conn = getConnection();
 			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM cartao WHERE nrCartao = ?;");
@@ -64,14 +115,14 @@ public class BdUtil {
 		}
 		
 		return null;
-	}
+	}*/
 	
 	//Metodo para obter cartoes
 	public static ArrayList<Cartao> obterCartoes(int nrCliente) {
 		try {
 			ArrayList<Cartao> listaCartao = new ArrayList<Cartao>();
 			Connection conn = getConnection();
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM cartao INNER JOIN conta ON cartao.nrConta = conta.nrConta WHERE conta.idCliente = ?;");
+			PreparedStatement stmt = conn.prepareStatement("SELECT cartao.nrConta, tpCartao, cartao.ativo, nrCartao, idCliente FROM cartao INNER JOIN conta ON cartao.nrConta = conta.nrConta WHERE conta.idCliente = ?;");
 			ResultSet rs = null;
 			
 			stmt.setInt(1, nrCliente);
@@ -79,10 +130,11 @@ public class BdUtil {
 			
 			while (rs.next()) {
 				listaCartao.add(new Cartao(
-						rs.getInt("nrConta"),
+						obterConta(rs.getInt("nrConta")),
 						rs.getInt("nrCartao"),
-						rs.getString("tpCartao")
-						));
+						rs.getString("tpCartao"),
+						rs.getBoolean("ativo")
+				));
 			}	
 			
 			rs.close();
@@ -101,63 +153,60 @@ public class BdUtil {
 	public static void criarCartao(Cartao cartao) {
 		try {
 			Connection conn = getConnection();
-			PreparedStatement stmt = conn.prepareStatement("INSERT INTO cartao (nrConta, tpCartao, ativo, nrCartao) VALUES (?, ?, ?,?);");
+			PreparedStatement stmt = conn.prepareStatement("INSERT INTO cartao (nrConta, tpCartao, ativo, nrCartao) VALUES (?, ?, true, ?);");
 			
-			stmt.setInt(1, cartao.getNrConta());
+			stmt.setInt(1, cartao.getConta().getNrConta());
 			stmt.setString(2, cartao.getTipoCartao());
-			stmt.setBoolean(3, true);
-			stmt.setString(4, null);
-			
+			stmt.setString(3, null);
 			stmt.execute();
-			
-			stmt.close();
-			conn.close();
-			
+
+			close(conn, stmt);
 			System.out.println("Cartão criado com sucesso.");
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
 	}
-	
-	//Metodo para apagar uma conta
-	public static void desativarConta(int nrConta) {
+
+	//Metodo para desativar uma conta
+	public static void desativarConta(Conta conta) {
 		try {
 			Connection conn = getConnection();
 			PreparedStatement stmt = conn.prepareStatement("UPDATE conta SET ativo = false WHERE nrConta = ?;");
 			
-			stmt.setInt(1, nrConta);
-			
+			stmt.setInt(1, conta.getNrConta());
 			stmt.execute();
 			
-			stmt.close();
-			conn.close();
+			close(conn, stmt);
 			System.out.println("Conta desativada com sucesso");
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
 	}
-	
+
 	//Metodo para criar uma conta
 	public static void criarConta(Conta conta) {
 		try {
 			Connection conn = getConnection();
-			PreparedStatement stmt = conn.prepareStatement("INSERT INTO conta (nrConta, saldo, juros, tpConta, idCliente) VALUES (?, ?, ?, ?, ?);");
+			PreparedStatement stmt = conn.prepareStatement("INSERT INTO conta (nrConta, saldo, juros, tpConta, idCliente, ativo) VALUES (?, ?, ?, ?, ?, true);");
 			
 			stmt.setString(1, null);
 			stmt.setDouble(2, conta.getSaldo());
-			stmt.setDouble(3, conta.getJuros());
+			if (conta.getTipoConta().equals("Ordem")) {
+				stmt.setString(3, null);
+			}
+			else {
+				stmt.setDouble(3, 5);
+			}
 			stmt.setString(4, conta.getTipoConta());
-			stmt.setInt(5, conta.getIdCliente());
-			
+			stmt.setInt(5, conta.getCliente().getNrCliente());
 			stmt.execute();
 			
-			stmt.close();
-			conn.close();
+			close(conn, stmt);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
 	}
-	
+
 	//Metodo para transferir entre contas
 	public static void transferencia(Transferencia transferencia) {
 		try {
@@ -165,57 +214,52 @@ public class BdUtil {
 			PreparedStatement statementTransferencia = connection.prepareStatement("INSERT INTO transferencia (nrTransferencia, nrContaOrigem, nrContaDestino, montante, data) VALUES (?, ?, ?, ?, ?);");
 			PreparedStatement statementContaOrigem = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
 			PreparedStatement statementContaDestino = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
-			double saldoOrigem = obterConta(transferencia.getNrContaOrigem()).getSaldo() - transferencia.getMontante();
-			double saldoDestino = obterConta(transferencia.getNrContaDestino()).getSaldo() + transferencia.getMontante();
+			double saldoOrigem = transferencia.getContaOrigem().getSaldo() - transferencia.getMontante();
+			double saldoDestino = transferencia.getContaDestino().getSaldo() + transferencia.getMontante();
 
 			statementTransferencia.setString(1, null);
-			statementTransferencia.setInt(2, transferencia.getNrContaOrigem());
-			statementTransferencia.setInt(3, transferencia.getNrContaDestino());
+			statementTransferencia.setInt(2, transferencia.getContaOrigem().getNrConta());
+			statementTransferencia.setInt(3, transferencia.getContaDestino().getNrConta());
 			statementTransferencia.setDouble(4, transferencia.getMontante());
 			statementTransferencia.setDate(5, null);
 
 			statementContaOrigem.setDouble(1, saldoOrigem);
-			statementContaOrigem.setInt(2, transferencia.getNrContaOrigem());
+			statementContaOrigem.setInt(2, transferencia.getContaOrigem().getNrConta());
 
 			statementContaDestino.setDouble(1, saldoDestino);
-			statementContaDestino.setInt(2, transferencia.getNrContaDestino());
+			statementContaDestino.setInt(2, transferencia.getContaDestino().getNrConta());
 
 			statementTransferencia.execute();
 			statementContaOrigem.execute();
 			statementContaDestino.execute();
 
-			statementContaDestino.close();
-			statementContaOrigem.close();
-			statementTransferencia.close();
-			connection.close();
+			close(connection, statementContaDestino, statementContaOrigem, statementTransferencia);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
 	}
 
 	//Metodo para levantar dinheiro
-	public static void inserirLevantamentoConta(Levantamento levantamento) {
+	public static void inserirLevantamento(Levantamento levantamento) {
 		try {
 			Connection connection = getConnection();
 			PreparedStatement statementLevatamento = connection.prepareStatement("INSERT INTO levantamento (nrLevantamento, nrConta, nCartao, montante, data) VALUES (?, ?, ?, ?, ?);");
 			PreparedStatement statementConta = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
-			double saldoAlteardo = obterConta(levantamento.getNrConta()).getSaldo() - levantamento.getMontante();
+			double saldoAlteardo = levantamento.getConta().getSaldo() - levantamento.getMontante();
 
 			statementLevatamento.setString(1, null);
-			statementLevatamento.setInt(2, levantamento.getNrConta());
+			statementLevatamento.setInt(2, levantamento.getConta().getNrConta());
 			statementLevatamento.setString(3, null);
 			statementLevatamento.setDouble(4, levantamento.getMontante());
 			statementLevatamento.setDate(5, null);
 
 			statementConta.setDouble(1, saldoAlteardo);
-			statementConta.setInt(2, levantamento.getNrConta());
+			statementConta.setInt(2, levantamento.getConta().getNrConta());
 
 			statementLevatamento.execute();
 			statementConta.execute();
 
-			statementConta.close();
-			statementLevatamento.close();
-			connection.close();
+			close(connection, statementConta, statementLevatamento);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
@@ -227,20 +271,18 @@ public class BdUtil {
 			Connection connection = getConnection();
 			PreparedStatement stmtDeposito = connection.prepareStatement("INSERT INTO deposito (nrDeposito, nrConta, montante) VALUES (?, ?, ?);");
 			PreparedStatement stmtConta = connection.prepareStatement("UPDATE conta SET saldo = ? WHERE nrconta = ?;");
-			double saldoAlterado = obterConta(deposito.getNrConta()).getSaldo() + deposito.getMontante();
+			double saldoAlterado = deposito.getConta().getSaldo() + deposito.getMontante();
 
 			stmtDeposito.setString(1, null);
-			stmtDeposito.setInt(2, deposito.getNrConta());
+			stmtDeposito.setInt(2, deposito.getConta().getNrConta());
 			stmtDeposito.setDouble(3,deposito.getMontante());
 			stmtDeposito.execute();
 
 			stmtConta.setDouble(1, saldoAlterado);
-			stmtConta.setInt(2, deposito.getNrConta());
+			stmtConta.setInt(2, deposito.getConta().getNrConta());
 			stmtConta.execute();
 
-			stmtConta.close();
-			stmtDeposito.close();
-			connection.close();
+			close(connection, stmtConta, stmtDeposito);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
@@ -261,16 +303,49 @@ public class BdUtil {
 				conta = new Conta(
 						rs.getInt("nrconta"),
 						rs.getDouble("saldo"),
-						rs.getDouble("juros"),
 						rs.getString("tpConta"),
-						rs.getInt("idCliente")
+						rs.getBoolean("ativo"),
+						obterCliente(rs.getInt("idCliente"))
+				);
+			}
+
+			close(connection, stmt, rs);
+			return conta;
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+
+		return null;
+	}
+
+	//Metodo para obter dados de um dado cliente devolvendo um cliente com todos os seus atributos
+	public static Cliente obterClienteTel (int telemovel) {
+		try {
+			Connection connection = getConnection();
+			Cliente cliente = null;
+			PreparedStatement stmt = connection.prepareStatement("SELECT * FROM cliente INNER JOIN pessoa ON cliente.idPessoa = pessoa.idPessoa WHERE pessoa.telefone = ?;");
+			ResultSet rs;
+
+			stmt.setInt(1, telemovel);
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				cliente = new Cliente(
+						rs.getInt("idCliente"),
+						rs.getString("password"),
+						rs.getString("tpCliente"),
+						rs.getString("nome"),
+						rs.getString("morada"),
+						rs.getInt("telefone"),
+						rs.getString("email"),
+						rs.getString("profissao")
 				);
 			}
 
 			rs.close();
 			stmt.close();
 			connection.close();
-			return conta;
+			return cliente;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
@@ -302,9 +377,7 @@ public class BdUtil {
 				);
 			}
 
-			rs.close();
-			stmt.close();
-			connection.close();
+			close(connection, stmt, rs);
 			return cliente;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -318,29 +391,25 @@ public class BdUtil {
 		try {
 			Connection connection = getConnection();
 			PreparedStatement stmt = connection.prepareStatement("SELECT * FROM conta WHERE idCliente = ?;");
-			ResultSet rs = null;
-			ArrayList<Conta> listaContas = new ArrayList<Conta>();
+			ResultSet rs;
+			ArrayList<Conta> listaContas = new ArrayList<>();
 
 			stmt.setInt(1, nrCliente);
 			rs = stmt.executeQuery();
 
 			while (rs.next()) {
-				if (rs.getBoolean("ativo")) {
 				listaContas.add(
-							new Conta(
-									rs.getInt("nrConta"),
-									rs.getDouble("saldo"),
-									rs.getDouble("juros"),
-									rs.getString("tpConta"),
-									rs.getInt("idCliente")
-								)
-						);
-				}
+					new Conta(
+						rs.getInt("nrConta"),
+						rs.getDouble("saldo"),
+						rs.getString("tpConta"),
+						rs.getBoolean("ativo"),
+						obterCliente(rs.getInt("idCliente"))
+					)
+				);
 			}
 
-			rs.close();
-			stmt.close();
-			connection.close();
+			close(connection, stmt, rs);
 			return listaContas;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro ao obter a lista de contas: %s\n", e.getMessage());
@@ -378,10 +447,8 @@ public class BdUtil {
 			Connection connection = getConnection();
 			ResultSet rs = null;
 			PreparedStatement stmtLogin = connection.prepareStatement("SELECT password, tpCliente FROM cliente WHERE idCliente = ?;");
-			PreparedStatement stmtDataHora = connection.prepareStatement("INSERT INTO login (idCliente, dataLogin) VALUES (?, ?);");
 
 			stmtLogin.setInt(1, nrCliente);
-
 			rs = stmtLogin.executeQuery();
 
 			while (rs.next()) {
@@ -394,7 +461,6 @@ public class BdUtil {
 			}
 
 			rs.close();
-			stmtDataHora.close();
 			stmtLogin.close();
 			connection.close();
 		} catch (SQLException e) {
@@ -461,6 +527,34 @@ public class BdUtil {
 		}
 		
 		return conn;
+	}
+
+	private static void close(Connection conn) throws  SQLException{
+		conn.close();
+	}
+
+	private static void close(Connection conn, PreparedStatement stmt) throws  SQLException{
+		conn.close();
+		stmt.close();
+	}
+
+	private static void close(Connection conn, PreparedStatement stmt, ResultSet rs) throws  SQLException{
+		conn.close();
+		stmt.close();
+		rs.close();
+	}
+
+	private static void close(Connection conn, PreparedStatement stmt1, PreparedStatement stmt2) throws  SQLException {
+		conn.close();
+		stmt1.close();
+		stmt2.close();
+	}
+
+	private static void close(Connection conn, PreparedStatement stmt1, PreparedStatement stmt2, PreparedStatement stmt3) throws  SQLException {
+		conn.close();
+		stmt1.close();
+		stmt2.close();
+		stmt3.close();
 	}
 
 	private BdUtil() {

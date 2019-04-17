@@ -2,7 +2,15 @@ package com.example.banco.pessoa;
 
 import java.util.Scanner;
 
+import com.example.banco.cartao.Cartao;
+import com.example.banco.conta.Conta;
+import com.example.banco.conta.ContaOrdem;
+import com.example.banco.movimentos.Deposito;
+import com.example.banco.movimentos.Levantamento;
+import com.example.banco.movimentos.Transferencia;
 import com.example.banco.util.BdUtil;
+
+import javax.sound.midi.Soundbank;
 
 //Class Cliente
 public class Cliente extends Pesssoa {
@@ -13,11 +21,10 @@ public class Cliente extends Pesssoa {
 	//Metodo para um cliente fazer login
 	public void login() {
 		Scanner scan = new Scanner(System.in);
-		Cliente clienteLogin = null;
-		int nCliente;
+		int nCliente, op;
 		String password;
 
-		while (true) {
+		LOGIN: while (true) {
 			System.out.println();
 			System.out.println("Menu - Login");
 			System.out.print("Número cliente: ");
@@ -26,28 +33,72 @@ public class Cliente extends Pesssoa {
 			System.out.print("Password: ");
 			password = scan.next();
 
+			System.out.println("A processar...");
 			switch(BdUtil.login(nCliente, password)) {
                 case "normal":
-                	clienteLogin = BdUtil.obterCliente(nCliente);
-                	new ClienteNormal(
-                			clienteLogin.getNrCliente(),
-							clienteLogin.getPassword(),
-							clienteLogin.getTipoCliente(),
-							clienteLogin.getIdPessoa(),
-							clienteLogin.getNome(),
-							clienteLogin.getMorada(),
-							clienteLogin.getTelefone(),
-							clienteLogin.getEmail(),
-							clienteLogin.getProfissao()
-					).loginNormal();
+                	this.setTipoCliente("Normal");
+                	this.setNrCliente(nCliente);
+                	this.setPassword(password);
                     break;
                 case "vip":
                     break;
                 case "administrador":
                     Administrador.menuAdmin();
                     break;
+				default:
+					continue LOGIN;
             }
-			break;
+
+            SUBMENU: while(true) {
+				System.out.println();
+				System.out.println("Menu:");
+				System.out.println("1- Listar contas");
+				System.out.println("2- Listar cartões");
+				System.out.println("3- Depositar");
+				System.out.println("4- Levantamentar");
+				System.out.println("5- Transferencia");
+				System.out.println("6- Criar Conta");
+				System.out.println("7- Desativar Conta");
+				System.out.println("8- Criar cartão");
+				System.out.println("9- Desativar cartão");
+				System.out.println("0- Sair");
+				System.out.print("Opção: ");
+				op = scan.nextInt();
+
+				switch (op) {
+					case 1:
+						new Conta(this).displayContas();
+						continue SUBMENU;
+					case 2:
+						new Cartao().displayCartoes(this);
+						continue SUBMENU;
+					case 3:
+						new Deposito().depositar(this);
+						continue SUBMENU;
+					case 4:
+						new Levantamento().levantar(this);
+						continue SUBMENU;
+					case 5:
+						new Transferencia().transferir(this);
+						continue SUBMENU;
+					case 6:
+						new Conta(this).criarConta();
+						continue SUBMENU;
+					case 7:
+						new Conta(this).desativarConta();
+						continue SUBMENU;
+					case 8:
+						new Cartao().criarCartao();
+						continue SUBMENU;
+					case 9:
+						new Cartao().desativarCartao();
+						continue SUBMENU;
+					case 0:
+						System.exit(0);
+					default:
+						System.out.println("Opção selecionada inválida");
+				}
+			}
 		}
 	}
 
@@ -100,8 +151,12 @@ public class Cliente extends Pesssoa {
 		do {
 			System.out.print("Password: ");
 		} while (!this.setPassword(scan.next()));
-		
+
+		System.out.println("A processar...");
 		BdUtil.registarCliente(this);
+		Cliente cliente = BdUtil.obterClienteTel(getTelefone());
+		BdUtil.criarConta(new ContaOrdem(cliente));
+		System.out.printf("Cliente registado com sucesso, atribuido o número: %d\n", cliente.getNrCliente());
 	}
 
 	public Cliente (int nrCliente, String password, String tipoCliente, String nome, String morada, int telefone, String email, String profissao) {

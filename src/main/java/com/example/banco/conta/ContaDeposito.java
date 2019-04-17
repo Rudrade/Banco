@@ -6,12 +6,11 @@ import com.example.banco.pessoa.Cliente;
 
 public class ContaDeposito extends Conta{
 	private int duracao;
-	
+	private int juros;
+
 	protected ContaDeposito(Cliente cliente) {
-		super();
+		super(cliente);
 		Scanner scan = new Scanner(System.in);
-		
-		this.setIdCliente(cliente.getNrCliente());
 		this.setTipoConta("Depósito a prazo");
 		this.setJuros(5);
 		System.out.println("Duração da conta (1-5 anos)");
@@ -22,5 +21,9 @@ public class ContaDeposito extends Conta{
 		if (duracao >= 1 && duracao <= 5) {
 			this.duracao = duracao;
 		}
+	}
+
+	private void setJuros(int juros) {
+		this.juros = juros;
 	}
 }

@@ -4,71 +4,94 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import com.example.banco.conta.Conta;
+import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
 public class Cartao {
 	private int nrCartao;
-	private int nrConta;
 	private String tipoCartao;
+	private Conta conta;
+	private boolean ativo;
 	
 	//Metodo para desativar cartao
-	public void desativarCartao(int nrCliente) {
+	public void desativarCartao() {
 		Scanner scan = new Scanner(System.in);
 		int nCartao;
 		String password;
 		
 		System.out.println();
-		System.out.println("Cartão a desativar: ");
+		System.out.print("Cartão a desativar: ");
 		nCartao = scan.nextInt();
 		
-		System.out.println("Password:");
+		System.out.print("Password:");
 		password = scan.next();
-		
-		if (BdUtil.obterCliente(nrCliente).getPassword() == password) {
+
+		System.out.println("A processar...");
+		if (getConta().getCliente().getPassword().equals(password)) {
 			BdUtil.desativarCartao(nCartao);
 		}
 	}
-	
+
+	//Metodo para mostrar o detalhe de um dado cartao
+	public void detalheCartao(Cartao cartao) {
+		System.out.printf("\nNº cartão: %d\n", cartao.getNrCartao());
+		System.out.printf("Conta: %d\n", cartao.getConta().getNrConta());
+		System.out.printf("Tipo: %s\n", cartao.getTipoCartao());
+		if (cartao.getAtivo()) {
+			System.out.println("Estado: Ativo");
+		}
+		else {
+			System.out.println("Estado: Inativo");
+		}
+	}
+
 	//Metodo para listar cartao
-	public void displayCartao(int nrCliente) {
-		ArrayList<Cartao> listaCartao = BdUtil.obterCartoes(nrCliente);
+	public void displayCartoes(Cliente cliente) {
+		System.out.println("A processar...");
+		ArrayList<Cartao> listaCartao = BdUtil.obterCartoes(cliente.getNrCliente());
 		
 		for (Cartao cartao : listaCartao) {
-			System.out.printf("\nNº cartão:%d\n", cartao.getNrCartao());
-			System.out.printf("Conta:%d\n", cartao.getNrConta());
-			System.out.printf("Tipo: %s\n", cartao.getTipoCartao());
+			cartao.detalheCartao(cartao);
 		}
 	}
 	
 	//Metodo para criar cartao
-	public void criarCartao(Conta conta) {
+	public void criarCartao() {
 		Scanner scan = new Scanner(System.in);
-		int tCartao;
-		String password = null;
-		
+		int tCartao, nConta;
+		String password;
+
+		System.out.println();
+		System.out.print("Nº conta a associar:");
+		nConta = scan.nextInt();
+
+		this.setConta(BdUtil.obterConta(nConta));
+		if (!getConta().getEstado()) {
+			System.out.println("Conta inativa ou inexistente");
+			return;
+		}
+
 		TIPO: do {
-			System.out.println();
 			System.out.println("1- Crédito");
 			System.out.println("2- Débito");
+			System.out.print("Opção: ");
 			tCartao = scan.nextInt();
-			
-			switch (tCartao) {
-			case 1:
-				System.out.println("Password: ");
-				password = scan.next();
-				if (BdUtil.obterCliente(conta.getIdCliente()).getPassword().equals(password)) {
-					BdUtil.criarCartao(new CartaoCredito(conta));
+
+			System.out.println("Password: ");
+			password = scan.next();
+
+			if (conta.getCliente().getPassword().equals(password)) {
+				System.out.println("A processar...");
+				switch (tCartao) {
+					case 1:
+						BdUtil.criarCartao(new CartaoCredito(this.getConta()));
+						break TIPO;
+					case 2:
+						BdUtil.criarCartao(new CartaoDebito(this.getConta()));
+						break TIPO;
+					default:
+						System.out.println("Tipo inserido inválido");
 				}
-				break TIPO;
-			case 2:
-				System.out.println("Password: ");
-				password = scan.next();
-				if (BdUtil.obterCliente(conta.getIdCliente()).getPassword().equals(password)) {
-					BdUtil.criarCartao(new CartaoDebito(conta));
-				}
-				break TIPO;
-			default:
-				System.out.println("Tipo inserido inválido");
 			}
 		} while (tCartao != 0);
 	}
@@ -77,18 +100,22 @@ public class Cartao {
 		return this.tipoCartao;
 	}
 	
-	public int getNrConta() {
-		return this.nrConta;
+	public Conta getConta() {
+		return this.conta;
 	}
 	
 	public int getNrCartao() {
 		return this.nrCartao;
 	}
 	
-	protected void setNrConta(int nrConta) {
-		this.nrConta = nrConta;
+	protected void setConta(int nrConta) {
+		this.conta = BdUtil.obterConta(nrConta);
 	}
-	
+
+	protected void setConta(Conta conta) {
+		this.conta = conta;
+	}
+
 	protected void setTipoCartao(String tipoCartao) {
 		if (tipoCartao.equals("Crédito") || tipoCartao.equals("Débito")) {
 			this.tipoCartao = tipoCartao;
@@ -99,13 +126,26 @@ public class Cartao {
 		this.nrCartao = nrCartao;
 	}
 	
-	public Cartao(int nrConta, int nrCartao, String tipoCartao) {
-		this.setNrConta(nrConta);
+	public Cartao(Conta conta, int nrCartao, String tipoCartao, boolean ativo) {
+		this.setConta(conta);
 		this.setTipoCartao(tipoCartao);
 		this.setNrCartao(nrCartao);
+		this.setAtivo(ativo);
 	}
-	
+
+	public boolean getAtivo() {
+		return this.ativo;
+	}
+
+	private void setAtivo(boolean ativo) {
+		this.ativo = ativo;
+	}
+
+	public Cartao(Conta conta) {
+		this.setConta(conta);
+	}
+
 	public Cartao() {
-		
+
 	}
 }

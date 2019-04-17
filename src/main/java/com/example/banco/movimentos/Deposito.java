@@ -5,6 +5,7 @@ import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Deposito {
@@ -40,11 +41,25 @@ public class Deposito {
         }
     }
 
-    public void depositoDetalhe(Deposito deposito) {
-        System.out.println();
-        System.out.printf("Nº: %d\n", deposito.getNrDeposito());
-        System.out.printf("Conta: %s\n", deposito.getConta().getNrConta());
-        System.out.printf("Montante: %.2f\n", deposito.getMontante());
+    public void depositoDetalhe() {
+        System.out.println("Tipo: Depósito");
+        System.out.printf("Nº: %d\n", this.getNrDeposito());
+        System.out.printf("Conta: %s\n", this.getConta().getNrConta());
+        System.out.printf("Montante: %.2f\n", this.getMontante());
+    }
+
+    public void displayAll(Cliente cliente) {
+        ArrayList<Conta> contas = BdUtil.obterContas(cliente.getNrCliente());
+
+        for (Conta conta : contas) {
+            if (cliente.getNrCliente() == conta.getCliente().getNrCliente()) {
+                for (Deposito deposito : BdUtil.obterDepositos(conta)) {
+                    deposito.depositoDetalhe();
+                    System.out.println("-------------");
+                }
+                return;
+            }
+        }
     }
 
     public Deposito(int nrDeposito, Conta conta, double montante) {

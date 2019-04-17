@@ -5,6 +5,7 @@ import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Transferencia {
@@ -45,6 +46,29 @@ public class Transferencia {
         }
     }
 
+    public void transferenciaDetalhe(Transferencia transf) {
+        System.out.println("Tipo: Transferência");
+        System.out.printf("Nº: %d\n", transf.getNrTransferencia());
+        System.out.printf("Conta Origem: %d\n", transf.getContaOrigem().getNrConta());
+        System.out.printf("Conta Destino: %d\n", transf.getContaDestino().getNrConta());
+        System.out.printf("Montante: %.2f\n", transf.getMontante());
+    }
+
+    public void displayAll(Cliente cliente) {
+        ArrayList<Conta> contas = BdUtil.obterContas(cliente.getNrCliente());
+
+        for (Conta conta : contas) {
+            if (cliente.getNrCliente() == conta.getCliente().getNrCliente()) {
+                ArrayList<Transferencia> lista = BdUtil.obterTransferencia(conta);
+                for (Transferencia transferencia : lista) {
+                    transferencia.transferenciaDetalhe(transferencia);
+                    System.out.println("-------------");
+                }
+                return;
+            }
+        }
+    }
+
     private boolean setMontante(double montante) {
         //if (montante > 0 && BdUtil.obterConta(this.getNrContaOrigem()).getSaldo() >= montante) {
             this.montante = montante;
@@ -74,5 +98,24 @@ public class Transferencia {
 
     private void setContaOrigem(Conta conta) {
         this.contaOrigem = conta;
+    }
+
+    public int getNrTransferencia() {
+        return this.nrTransferencia;
+    }
+
+    public Transferencia(int nrTransferencia, Conta contaOrigem, Conta contaDestino, double montante) {
+        setNrTransferencia(nrTransferencia);
+        setContaOrigem(contaOrigem);
+        setContaDestino(contaDestino);
+        setMontante(montante);
+    }
+
+    public Transferencia() {
+
+    }
+
+    private void setNrTransferencia(int nrTransferencia) {
+        this.nrTransferencia = nrTransferencia;
     }
 }

@@ -15,61 +15,87 @@ public class BdUtil {
 	private static final String BD_URL		= "jdbc:mysql://137.74.114.78:3306/banco?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
-/*
-	//Metodo para devolver os deposito ou levantamento
-	public static ArrayList<Deposito> obterDepLev(String movimento, int nrConta) {
+
+	//Metodo para obter transferencia
+	public static ArrayList<Transferencia> obterTransferencia(Conta conta) {
 		try {
-			Connection conn = getConnection();
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM deposito WHERE nrConta = ?;");
-			ResultSet rs = null;
-			ArrayList lista;
-/*
-			if (movimento.toLowerCase().equals("levantamento")) {
-				lista = new ArrayList<Levantamento>();
+			Connection connection = getConnection();
+			PreparedStatement stmt = connection.prepareStatement("SELECT nrTransferencia, nrContaOrigem, nrContaDestino, montante FROM transferencia INNER JOIN conta ON transferencia.nrContaOrigem = conta.nrconta WHERE idCliente = ?;");
+			ResultSet rs;
+			ArrayList<Transferencia> lista = new ArrayList<>();
 
-				stmt.setString(1, "levantamento");
-				stmt.setInt(2, nrConta);
-				rs = stmt.executeQuery();
+			stmt.setInt(1, conta.getCliente().getNrCliente());
+			rs = stmt.executeQuery();
 
-				while (rs.next()) {
-					lista.add(new Levantamento(
-							rs.getInt("nrLevantamento"),
-							rs.getInt("nrConta"),
-							rs.getDouble("montante")
-					));
-				}
-
-				rs.close();
-				stmt.close();
-				conn.close();
-				return lista;
+			while (rs.next()) {
+				Transferencia transferencia = new Transferencia(rs.getInt("nrTransferencia"),
+						BdUtil.obterConta(rs.getInt("nrContaOrigem")),
+						BdUtil.obterConta(rs.getInt("nrContaDestino")),
+						rs.getDouble("montante"));
+				lista.add(transferencia);
 			}
-			else if (movimento.toLowerCase().equals("deposito")) {
-			lista = new ArrayList<Deposito>();
 
-				stmt.setInt(1, nrConta);
-				rs = stmt.executeQuery();
-
-				while (rs.next()) {
-					lista.add(new Deposito(
-							rs.getInt("nrDeposito"),
-							rs.getInt("nrConta"),
-							rs.getDouble("montante")
-					));
-				}
-
-				rs.close();
-				stmt.close();
-				conn.close();
-				return lista;
-			//}
-			//return null;
-		} catch (SQLException e){
+			close(connection, stmt, rs);
+			return lista;
+		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
-
 		return null;
-	}*/
+	}
+
+	//Metodo para obter levantamento
+	public static ArrayList<Levantamento> obterLevantamento(Conta conta) {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement stmt = connection.prepareStatement("SELECT nrLevantamento, levantamento.nrConta, montante FROM levantamento INNER JOIN conta ON levantamento.nrConta = conta.nrconta WHERE idCliente = ?;");
+			ResultSet rs;
+			ArrayList<Levantamento> lista = new ArrayList<>();
+
+			stmt.setInt(1, conta.getCliente().getNrCliente());
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				lista.add(new Levantamento(
+					rs.getInt("nrLevantamento"),
+					BdUtil.obterConta(rs.getInt("nrConta")),
+					rs.getDouble("montante")
+				));
+			}
+
+			close(connection, stmt, rs);
+			return lista;
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+		return null;
+	}
+
+	//Metodo para obter deposito
+	public static ArrayList<Deposito> obterDepositos(Conta conta) {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement stmt = connection.prepareStatement("SELECT nrDeposito, deposito.nrConta, montante FROM deposito INNER JOIN conta ON deposito.nrConta = conta.nrconta WHERE idCliente = ?;");
+			ResultSet rs;
+			ArrayList<Deposito> lista = new ArrayList<>();
+
+			stmt.setInt(1, conta.getCliente().getNrCliente());
+			rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				lista.add(new Deposito(
+						rs.getInt("nrDeposito"),
+						BdUtil.obterConta(rs.getInt("nrConta")),
+						rs.getDouble("montante")
+				));
+			}
+
+			close(connection, stmt, rs);
+			return lista;
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+		return null;
+	}
 
 	//Metodo para desativar cartao
 	public static void desativarCartao(int nrCartao) {
@@ -88,34 +114,6 @@ public class BdUtil {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
 	}
-	
-	//Metodo para obter cartao
-	/*public static Cartao obterCartao(int nrCartao) {
-		try {
-			Connection conn = getConnection();
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM cartao WHERE nrCartao = ?;");
-			ResultSet rs = null;
-			
-			stmt.setInt(1, nrCartao);
-			rs = stmt.executeQuery();
-			
-			while (rs.next()) {
-				return new Cartao(
-						rs.getInt("nrConta"),
-						rs.getInt("nrCartao"),
-						rs.getString("tpCartao")
-					);
-			}
-			
-			conn.close();
-			rs.close();
-			conn.close();
-		} catch (SQLException e) {
-			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
-		}
-		
-		return null;
-	}*/
 	
 	//Metodo para obter cartoes
 	public static ArrayList<Cartao> obterCartoes(int nrCliente) {
@@ -503,14 +501,8 @@ public class BdUtil {
 			
 			stmtCliente.execute();
 			stmtCliente.close();
-			
-			System.out.println("Cliente registado com sucesso");
 
-			rs.close();
-			stmtCliente.close();
-			stmtPessoa.close();
-			stmtPessoaCliente.close();
-			connection.close();
+			close(connection, stmtCliente, stmtPessoa, stmtPessoaCliente, rs);
 		} catch (SQLException e) {
 			System.out.printf("Erro ao registar cliente: %s\n", e.getMessage());
 		}
@@ -555,6 +547,14 @@ public class BdUtil {
 		stmt1.close();
 		stmt2.close();
 		stmt3.close();
+	}
+
+	private static void close(Connection conn, PreparedStatement stmt1, PreparedStatement stmt2, PreparedStatement stmt3, ResultSet rs) throws  SQLException {
+		conn.close();
+		stmt1.close();
+		stmt2.close();
+		stmt3.close();
+		rs.close();
 	}
 
 	private BdUtil() {

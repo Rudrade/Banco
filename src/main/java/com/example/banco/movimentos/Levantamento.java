@@ -6,6 +6,7 @@ import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Levantamento {
@@ -42,6 +43,27 @@ public class Levantamento {
         }
     }
 
+    public void levantamentoDetalhe() {
+        System.out.println("Tipo: Levantamento");
+        System.out.printf("Nº: %d\n", this.getNrLevantamento());
+        System.out.printf("Conta: %s\n", this.getConta().getNrConta());
+        System.out.printf("Montante: %.2f\n", this.getMontante());
+    }
+
+    public void displayAll(Cliente cliente) {
+        ArrayList<Conta> contas = BdUtil.obterContas(cliente.getNrCliente());
+
+        for (Conta conta : contas) {
+            if (cliente.getNrCliente() == conta.getCliente().getNrCliente()) {
+                for (Levantamento levantamento : BdUtil.obterLevantamento(conta)) {
+                    levantamento.levantamentoDetalhe();
+                    System.out.println("-------------");
+                }
+                return;
+            }
+        }
+    }
+
     public Levantamento(int nrLevantamento, Conta conta, double montante) {
         this.setMontante(montante);
         this.setConta(conta);
@@ -55,7 +77,7 @@ public class Levantamento {
     //Metodo para validar se o montante desejado pelo utilizador é válido
     //Faz uma query a base de dados de forma a verificar a quantidade de saldo da conta
     private boolean setMontante(double montante) {
-        if (montante > 0) {
+       // if (montante > 0) {
             //Conta conta = BdUtil.obterConta(this.getNrConta());
             //if (conta.getSaldo() >= montante) {
                 this.montante = montante;
@@ -65,11 +87,11 @@ public class Levantamento {
                 System.out.println("Saldo insuficiente");
                 return false;
             }*/
-        }
+       /* }
         else {
             System.out.println("Montante inserido inválido.");
             return false;
-        }
+        }*/
     }
 
     public Conta getConta(){
@@ -85,4 +107,8 @@ public class Levantamento {
     }
 
     public Levantamento() {}
+
+    public int getNrLevantamento() {
+        return this.nrLevantamento;
+    }
 }

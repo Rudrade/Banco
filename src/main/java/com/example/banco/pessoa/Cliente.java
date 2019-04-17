@@ -61,6 +61,7 @@ public class Cliente extends Pesssoa {
 				System.out.println("7- Desativar Conta");
 				System.out.println("8- Criar cartão");
 				System.out.println("9- Desativar cartão");
+				System.out.println("10- Consultar Movimentos");
 				System.out.println("0- Sair");
 				System.out.print("Opção: ");
 				op = scan.nextInt();
@@ -93,6 +94,12 @@ public class Cliente extends Pesssoa {
 					case 9:
 						new Cartao().desativarCartao();
 						continue SUBMENU;
+					case 10:
+						System.out.println("A processar...");
+						new Deposito().displayAll(this);
+						new Levantamento().displayAll(this);
+						new Transferencia().displayAll(this);
+						break;
 					case 0:
 						System.exit(0);
 					default:

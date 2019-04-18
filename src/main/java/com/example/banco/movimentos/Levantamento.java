@@ -1,17 +1,18 @@
 package com.example.banco.movimentos;
 
-import com.example.banco.conta.Conta;
-import com.example.banco.pessoa.Cliente;
-import com.example.banco.util.BdUtil;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import com.example.banco.cartao.Cartao;
+import com.example.banco.conta.Conta;
+import com.example.banco.pessoa.Cliente;
+import com.example.banco.util.BdUtil;
+
 public class Levantamento {
     private int nrLevantamento;
     private Conta conta;
-    private int nrCartao;
+    private Cartao cartao;
     private double montante;
     private LocalDateTime data;
 
@@ -47,11 +48,14 @@ public class Levantamento {
         }
     }
 
-    public void levantamentoDetalhe() {
+    public void levantamentoDetalhe(Levantamento levantamento) {
         System.out.println("Tipo: Levantamento");
-        System.out.printf("Nº: %d\n", this.getNrLevantamento());
-        System.out.printf("Conta: %s\n", this.getConta().getNrConta());
-        System.out.printf("Montante: %.2f\n", this.getMontante());
+        System.out.printf("Nº: %d\n", levantamento.getNrLevantamento());
+        System.out.printf("Conta: %d\n", levantamento.getConta().getNrConta());
+        if (levantamento.getCartao() != null) {
+        	System.out.printf("Cartão: %d\n", levantamento.getCartao().getNrCartao());
+        }
+        System.out.printf("Montante: %.2f\n", levantamento.getMontante());
     }
 
     public void displayAll(Cliente cliente) {
@@ -59,8 +63,9 @@ public class Levantamento {
 
         for (Conta conta : contas) {
             if (cliente.getNrCliente() == conta.getCliente().getNrCliente()) {
-                for (Levantamento levantamento : BdUtil.obterLevantamento(conta)) {
-                    levantamento.levantamentoDetalhe();
+            	ArrayList<Levantamento> listaLevantamento = BdUtil.obterLevantamento(conta);
+                for (Levantamento levantamento : listaLevantamento) {
+                    levantamento.levantamentoDetalhe(levantamento);
                     System.out.println("-------------");
                 }
                 return;
@@ -68,7 +73,7 @@ public class Levantamento {
         }
     }
 
-    public Levantamento(int nrLevantamento, Conta conta, double montante) {
+    public Levantamento(int nrLevantamento, Conta conta, double montante, Cartao cartao) {
         this.montante = montante;
         this.setConta(conta);
         this.setNrLevantamento(nrLevantamento);
@@ -105,6 +110,14 @@ public class Levantamento {
 
     public Levantamento() {}
 
+    public Cartao getCartao() {
+    	return this.cartao;
+    }
+    
+    private void setCartao(Cartao cartao) {
+    	this.cartao = cartao;
+    }
+    
     public int getNrLevantamento() {
         return this.nrLevantamento;
     }

@@ -89,16 +89,16 @@ public class Cliente extends Pesssoa {
 						new Conta(this).desativarConta();
 						continue SUBMENU;
 					case 8:
-						new Cartao().criarCartao();
+						new Cartao().criarCartao(this);
 						continue SUBMENU;
 					case 9:
 						new Cartao().desativarCartao();
 						continue SUBMENU;
 					case 10:
 						System.out.println("A processar...");
-						new Deposito().displayAll(this);
+						new Deposito().displayAll(this);/*
 						new Levantamento().displayAll(this);
-						new Transferencia().displayAll(this);
+						new Transferencia().displayAll(this);*/
 						break;
 					case 0:
 						System.exit(0);

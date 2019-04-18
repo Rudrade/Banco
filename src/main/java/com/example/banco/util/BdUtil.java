@@ -15,6 +15,8 @@ public class BdUtil {
 	private static final String BD_URL		= "jdbc:mysql://137.74.114.78:3306/banco?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
 	private static final String BD_USER		= "admin";
 	private static final String BD_PASSWORD	= "XjAnxgL:9SK=QW*}";
+	private static BdUtil instancia = new BdUtil();
+	private static Connection connection;
 
 	//Metodo para obter um cartao
 	public static Cartao obterCartao(int nrCartao) {
@@ -31,7 +33,8 @@ public class BdUtil {
 						BdUtil.obterConta(rs.getInt("nrConta")),
 						rs.getInt("nrCartao"),
 						rs.getString("tpCartao"),
-						rs.getBoolean("ativo")
+						rs.getBoolean("ativo"),
+						rs.getDouble("saldo")
 				);
 			}
 
@@ -62,7 +65,7 @@ public class BdUtil {
 				lista.add(transferencia);
 			}
 
-			close(connection, stmt, rs);
+			close(stmt, rs);
 			return lista;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -74,7 +77,7 @@ public class BdUtil {
 	public static ArrayList<Levantamento> obterLevantamento(Conta conta) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement stmt = connection.prepareStatement("SELECT nrLevantamento, levantamento.nrConta, montante FROM levantamento INNER JOIN conta ON levantamento.nrConta = conta.nrconta WHERE idCliente = ?;");
+			PreparedStatement stmt = connection.prepareStatement("SELECT nrLevantamento, levantamento.nrConta, montante, levantamento.nCartao FROM levantamento INNER JOIN conta ON levantamento.nrConta = conta.nrconta WHERE idCliente = ?;");
 			ResultSet rs;
 			ArrayList<Levantamento> lista = new ArrayList<>();
 
@@ -85,11 +88,12 @@ public class BdUtil {
 				lista.add(new Levantamento(
 					rs.getInt("nrLevantamento"),
 					BdUtil.obterConta(rs.getInt("nrConta")),
-					rs.getDouble("montante")
+					rs.getDouble("montante"),
+					BdUtil.obterCartao(rs.getInt("nCartao"))
 				));
 			}
 
-			close(connection, stmt, rs);
+			close( stmt, rs);
 			return lista;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -97,10 +101,9 @@ public class BdUtil {
 		return null;
 	}
 
-	//Metodo para obter deposito
+	//Metodo para obter lista de todos os depositos de uma dada conta
 	public static ArrayList<Deposito> obterDepositos(Conta conta) {
 		try {
-			Connection connection = getConnection();
 			PreparedStatement stmt = connection.prepareStatement("SELECT nrDeposito, deposito.nrConta, montante, deposito.nrCartao FROM deposito INNER JOIN conta ON deposito.nrConta = conta.nrconta WHERE idCliente = ?;");
 			ResultSet rs;
 			ArrayList<Deposito> lista = new ArrayList<>();
@@ -111,13 +114,13 @@ public class BdUtil {
 			while (rs.next()) {
 				lista.add(new Deposito(
 						rs.getInt("nrDeposito"),
-						BdUtil.obterConta(rs.getInt("nrConta")),
+						conta,
 						rs.getDouble("montante"),
-						BdUtil.obterCartao(rs.getInt("nrCartao"))
+						null
 				));
 			}
 
-			close(connection, stmt, rs);
+			close(stmt, rs);
 			return lista;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -148,7 +151,7 @@ public class BdUtil {
 		try {
 			ArrayList<Cartao> listaCartao = new ArrayList<Cartao>();
 			Connection conn = getConnection();
-			PreparedStatement stmt = conn.prepareStatement("SELECT cartao.nrConta, tpCartao, cartao.ativo, nrCartao, idCliente FROM cartao INNER JOIN conta ON cartao.nrConta = conta.nrConta WHERE conta.idCliente = ?;");
+			PreparedStatement stmt = conn.prepareStatement("SELECT cartao.nrConta, tpCartao, cartao.ativo, nrCartao, idCliente, cartao.saldo FROM cartao INNER JOIN conta ON cartao.nrConta = conta.nrConta WHERE conta.idCliente = ?;");
 			ResultSet rs = null;
 			
 			stmt.setInt(1, nrCliente);
@@ -159,7 +162,8 @@ public class BdUtil {
 						obterConta(rs.getInt("nrConta")),
 						rs.getInt("nrCartao"),
 						rs.getString("tpCartao"),
-						rs.getBoolean("ativo")
+						rs.getBoolean("ativo"),
+						rs.getDouble("saldo")
 				));
 			}	
 			
@@ -186,7 +190,7 @@ public class BdUtil {
 			stmt.setString(3, null);
 			stmt.execute();
 
-			close(conn, stmt);
+			close(stmt);
 			System.out.println("Cartão criado com sucesso.");
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -202,7 +206,7 @@ public class BdUtil {
 			stmt.setInt(1, conta.getNrConta());
 			stmt.execute();
 			
-			close(conn, stmt);
+			close(stmt);
 			System.out.println("Conta desativada com sucesso");
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -227,7 +231,7 @@ public class BdUtil {
 			stmt.setInt(5, conta.getCliente().getNrCliente());
 			stmt.execute();
 			
-			close(conn, stmt);
+			close(stmt);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
@@ -259,7 +263,7 @@ public class BdUtil {
 			statementContaOrigem.execute();
 			statementContaDestino.execute();
 
-			close(connection, statementContaDestino, statementContaOrigem, statementTransferencia);
+			close(statementContaDestino, statementContaOrigem, statementTransferencia);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
@@ -275,7 +279,12 @@ public class BdUtil {
 
 			statementLevatamento.setString(1, null);
 			statementLevatamento.setInt(2, levantamento.getConta().getNrConta());
-			statementLevatamento.setString(3, null);
+			if (levantamento.getCartao() == null) {
+				statementLevatamento.setString(3, null);
+			}
+			else {
+				statementLevatamento.setInt(3, levantamento.getCartao().getNrCartao());
+			}
 			statementLevatamento.setDouble(4, levantamento.getMontante());
 			statementLevatamento.setDate(5, null);
 
@@ -285,7 +294,7 @@ public class BdUtil {
 			statementLevatamento.execute();
 			statementConta.execute();
 
-			close(connection, statementConta, statementLevatamento);
+			close(statementConta, statementLevatamento);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
@@ -333,7 +342,7 @@ public class BdUtil {
 
 			stmtConta.execute();
 
-			close(connection, stmtConta, stmtDeposito);
+			close(stmtConta, stmtDeposito);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 		}
@@ -360,7 +369,7 @@ public class BdUtil {
 				);
 			}
 
-			close(connection, stmt, rs);
+			close(stmt, rs);
 			return conta;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -428,7 +437,7 @@ public class BdUtil {
 				);
 			}
 
-			close(connection, stmt, rs);
+			close(stmt, rs);
 			return cliente;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -440,7 +449,6 @@ public class BdUtil {
 	//Metodo para fazer o display de todas as contas de um dado cliente
 	public static ArrayList<Conta> obterContas(int nrCliente) {
 		try {
-			Connection connection = getConnection();
 			PreparedStatement stmt = connection.prepareStatement("SELECT * FROM conta WHERE idCliente = ?;");
 			ResultSet rs;
 			ArrayList<Conta> listaContas = new ArrayList<>();
@@ -460,7 +468,7 @@ public class BdUtil {
 				);
 			}
 
-			close(connection, stmt, rs);
+			close(stmt, rs);
 			return listaContas;
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro ao obter a lista de contas: %s\n", e.getMessage());
@@ -485,7 +493,6 @@ public class BdUtil {
 
 			rs.close();
 			stmt.close();
-			connection.close();
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro ao ligar à base de dados: %s\n", e.getMessage());
 		}
@@ -561,42 +568,37 @@ public class BdUtil {
 		}
 	}
 	
+	//Metodo para deovlver uma instancia
+	public static BdUtil getInstance() {
+		return instancia;
+	}
+	
 	//Metodo para criar uma ligação à base de dados
-	private static Connection getConnection() {
-		Connection conn = null;
-		
+	private static Connection getConnection() {		
 		try {
-			conn = DriverManager.getConnection(BD_URL, BD_USER, BD_PASSWORD);
+			connection = DriverManager.getConnection(BD_URL, BD_USER, BD_PASSWORD);
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro ao ligar à base de dados: %s\n", e.getMessage());
 		}
 		
-		return conn;
+		return connection;
 	}
 
-	private static void close(Connection conn) throws  SQLException{
-		conn.close();
-	}
-
-	private static void close(Connection conn, PreparedStatement stmt) throws  SQLException{
-		conn.close();
+	private static void close(PreparedStatement stmt) throws  SQLException{
 		stmt.close();
 	}
 
-	private static void close(Connection conn, PreparedStatement stmt, ResultSet rs) throws  SQLException{
-		conn.close();
+	private static void close(PreparedStatement stmt, ResultSet rs) throws  SQLException{
 		stmt.close();
 		rs.close();
 	}
 
-	private static void close(Connection conn, PreparedStatement stmt1, PreparedStatement stmt2) throws  SQLException {
-		conn.close();
+	private static void close(PreparedStatement stmt1, PreparedStatement stmt2) throws  SQLException {
 		stmt1.close();
 		stmt2.close();
 	}
 
-	private static void close(Connection conn, PreparedStatement stmt1, PreparedStatement stmt2, PreparedStatement stmt3) throws  SQLException {
-		conn.close();
+	private static void close(PreparedStatement stmt1, PreparedStatement stmt2, PreparedStatement stmt3) throws  SQLException {
 		stmt1.close();
 		stmt2.close();
 		stmt3.close();
@@ -611,5 +613,6 @@ public class BdUtil {
 	}
 
 	private BdUtil() {
+		connection = getConnection();
 	}
 }

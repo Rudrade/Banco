@@ -93,11 +93,13 @@ public class Deposito {
     }
 
     public void displayAll(Cliente cliente) {
-        ArrayList<Conta> contas = BdUtil.obterContas(cliente.getNrCliente());
+    	BdUtil bd = BdUtil.getInstance();
+        ArrayList<Conta> contas = bd.obterContas(cliente.getNrCliente());
 
         for (Conta conta : contas) {
             if (cliente.getNrCliente() == conta.getCliente().getNrCliente()) {
-                for (Deposito deposito : BdUtil.obterDepositos(conta)) {
+            	ArrayList<Deposito> listaDeposito = bd.obterDepositos(conta);
+                for (Deposito deposito : listaDeposito) {
                     deposito.depositoDetalhe();
                     System.out.println("-------------");
                 }

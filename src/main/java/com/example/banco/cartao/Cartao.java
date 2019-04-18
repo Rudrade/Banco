@@ -12,6 +12,7 @@ public class Cartao {
 	private String tipoCartao;
 	private Conta conta;
 	private boolean ativo;
+	private double saldo;
 	
 	//Metodo para desativar cartao
 	public void desativarCartao() {
@@ -37,6 +38,7 @@ public class Cartao {
 		System.out.printf("\nNº cartão: %d\n", cartao.getNrCartao());
 		System.out.printf("Conta: %d\n", cartao.getConta().getNrConta());
 		System.out.printf("Tipo: %s\n", cartao.getTipoCartao());
+		System.out.printf("Saldo %.2f\n", cartao.getSaldo());
 		if (cartao.getAtivo()) {
 			System.out.println("Estado: Ativo");
 		}
@@ -56,7 +58,7 @@ public class Cartao {
 	}
 	
 	//Metodo para criar cartao
-	public void criarCartao() {
+	public void criarCartao(Cliente cliente) {
 		Scanner scan = new Scanner(System.in);
 		int tCartao, nConta;
 		String password;
@@ -65,12 +67,17 @@ public class Cartao {
 		System.out.print("Nº conta a associar:");
 		nConta = scan.nextInt();
 
-		this.setConta(BdUtil.obterConta(nConta));
-		if (!getConta().getEstado()) {
+		this.setConta(BdUtil.obterConta(nConta));		
+		if (!this.getConta().getEstado() || this.getConta().getCliente().getNrCliente() != cliente.getNrCliente()) {
 			System.out.println("Conta inativa ou inexistente");
 			return;
 		}
 
+		if (!this.getConta().getTipoConta().equals("Ordem" )) {
+			System.out.println("Apenas pode ser associado cartões a uma conta do tipo Ordem");
+			return;
+		}
+		
 		TIPO: do {
 			System.out.println("1- Crédito");
 			System.out.println("2- Débito");
@@ -126,11 +133,12 @@ public class Cartao {
 		this.nrCartao = nrCartao;
 	}
 	
-	public Cartao(Conta conta, int nrCartao, String tipoCartao, boolean ativo) {
+	public Cartao(Conta conta, int nrCartao, String tipoCartao, boolean ativo, double saldo) {
 		this.setConta(conta);
 		this.setTipoCartao(tipoCartao);
 		this.setNrCartao(nrCartao);
 		this.setAtivo(ativo);
+		this.setSaldo(saldo);
 	}
 
 	public boolean getAtivo() {
@@ -145,6 +153,19 @@ public class Cartao {
 		this.setConta(conta);
 	}
 
+	public double getSaldo() {
+		return this.saldo;
+	}
+	
+	private void setSaldo(double saldo) {
+		if (saldo >= 0) {
+			this.saldo = saldo;
+		}
+		else {
+			System.out.println("Saldo inserido inválido");
+		}
+	}
+	
 	public Cartao() {
 
 	}

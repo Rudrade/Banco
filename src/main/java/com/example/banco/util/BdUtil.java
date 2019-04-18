@@ -101,7 +101,7 @@ public class BdUtil {
 	public static ArrayList<Deposito> obterDepositos(Conta conta) {
 		try {
 			Connection connection = getConnection();
-			PreparedStatement stmt = connection.prepareStatement("SELECT nrDeposito, deposito.nrConta, montante, deposito.nrCartao FROM deposito INNER JOIN conta ON deposito.nrConta = conta.nrconta INNER JOIN cartao ON deposito.nrCartao = cartao.nrCartao WHERE idCliente = ?;");
+			PreparedStatement stmt = connection.prepareStatement("SELECT nrDeposito, deposito.nrConta, montante, deposito.nrCartao FROM deposito INNER JOIN conta ON deposito.nrConta = conta.nrconta WHERE idCliente = ?;");
 			ResultSet rs;
 			ArrayList<Deposito> lista = new ArrayList<>();
 

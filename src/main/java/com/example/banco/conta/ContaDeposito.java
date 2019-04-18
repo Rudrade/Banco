@@ -1,9 +1,7 @@
 package com.example.banco.conta;
 
-import java.lang.reflect.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 import com.example.banco.movimentos.Deposito;

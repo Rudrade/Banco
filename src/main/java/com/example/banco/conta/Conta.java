@@ -49,10 +49,12 @@ public class Conta {
     		
     		switch (tipoConta) {
 			    case 1:
-			        new ContaPoupanca(getCliente());
+			        System.out.println("A processar...");
+			        BdUtil.criarConta(new ContaPoupanca(this.getCliente()));
+			        System.out.println("Conta criada com sucesso.");
 				    break CRIAR;
 			    case 2:
-				    new ContaDeposito(getCliente());
+				    new ContaDeposito(this.getCliente());
 				    break CRIAR;
 			    default:
 				    System.out.println("Opção inserida inválida");

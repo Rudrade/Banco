@@ -49,14 +49,10 @@ public class Conta {
     		
     		switch (tipoConta) {
 			    case 1:
-                    System.out.println("A processar...");
-			        BdUtil.criarConta(new ContaPoupanca(getCliente()));
-				    System.out.println("Conta criada com sucesso.");
+			        new ContaPoupanca(getCliente());
 				    break CRIAR;
 			    case 2:
-                    System.out.println("A processar...");
-				    BdUtil.criarConta(new ContaDeposito(getCliente()));
-				    System.out.println("Conta criada com sucesso.");
+				    new ContaDeposito(getCliente());
 				    break CRIAR;
 			    default:
 				    System.out.println("Opção inserida inválida");
@@ -88,18 +84,25 @@ public class Conta {
         this.setSaldo(saldo);
         this.setTipoConta(tipoConta);
         this.setAtivo(ativo);
-        this.cliente = cliente;
+        this.setCliente(cliente);
     }
 
     public Conta(Cliente cliente) {
     	this.setCliente(cliente);
     }
 
-    protected void setSaldo(double saldo) {
-        this.saldo = saldo;
+    boolean setSaldo(double saldo) {
+        if (saldo >= 0) {
+            this.saldo = saldo;
+            return true;
+        }
+        else {
+            System.out.println("Saldo inserido inválido");
+            return false;
+        }
     }
 
-    private void setNrConta(int nrConta) {
+    void setNrConta(int nrConta) {
         this.nrConta = nrConta;
     }
 

@@ -70,14 +70,14 @@ public class Transferencia {
     }
 
     private boolean setMontante(double montante) {
-        //if (montante > 0 && BdUtil.obterConta(this.getNrContaOrigem()).getSaldo() >= montante) {
+         if (montante > 0 && montante <= getContaOrigem().getSaldo()) {
             this.montante = montante;
             return true;
-        /*}
+        }
         else {
-            System.out.println("Montante inválido");
+            System.out.println("Montante inválido ou insuficiente");
             return false;
-        }*/
+        }
     }
 
     public double getMontante() {

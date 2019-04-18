@@ -113,6 +113,11 @@ public class Deposito {
         this.setCartao(cartao);
     }
 
+    public Deposito(Conta conta, double montante) {
+        this.setConta(conta);
+        this.setMontante(montante);
+    }
+
     private void setNrDeposito(int nrDeposito) {
         this.nrDeposito = nrDeposito;
     }

@@ -291,6 +291,20 @@ public class BdUtil {
 		}
 	}
 
+	//Metodo random select
+	public static ResultSet select(String sql) {
+		try {
+			Connection connection = getConnection();
+			PreparedStatement statement = connection.prepareStatement(sql);
+			ResultSet resultSet = statement.executeQuery();
+
+			return resultSet;
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+		return null;
+	}
+
 	//Metodo para inserir deposito
 	public static void inserirDeposito(Deposito deposito) {
 		try {

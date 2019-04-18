@@ -1,7 +1,6 @@
 package com.example.banco.movimentos;
 
 import com.example.banco.conta.Conta;
-import com.example.banco.conta.ContaOrdem;
 import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
@@ -24,6 +23,11 @@ public class Levantamento {
         System.out.println();
         System.out.print("Conta a levantar:");
         this.setConta(BdUtil.obterConta(scan.nextInt()));
+        if (!(this.getConta().getTipoConta().equals("Ordem"))) {
+            System.out.println("Apenas é permitido fazer levantamentos de uma conta a Ordem");
+            return;
+        }
+
         if (!(this.getConta().getEstado() && this.getConta().getCliente().getNrCliente() == cliente.getNrCliente())) {
             System.out.println("Conta inserida inativa ou inválida");
             return;
@@ -32,7 +36,7 @@ public class Levantamento {
         System.out.print("Password: ");
         if (this.getConta().getCliente().getPassword().equals(scan.next())) {
             System.out.print("Total a levantar: ");
-            if(this.setMontante(scan.nextDouble())) {
+            if (this.setMontante(scan.nextDouble())) {
                 System.out.println("A processar...");
                 BdUtil.inserirLevantamento(this);
                 System.out.println("Levantamento feito com sucesso.");
@@ -65,7 +69,7 @@ public class Levantamento {
     }
 
     public Levantamento(int nrLevantamento, Conta conta, double montante) {
-        this.setMontante(montante);
+        this.montante = montante;
         this.setConta(conta);
         this.setNrLevantamento(nrLevantamento);
     }
@@ -77,21 +81,14 @@ public class Levantamento {
     //Metodo para validar se o montante desejado pelo utilizador é válido
     //Faz uma query a base de dados de forma a verificar a quantidade de saldo da conta
     private boolean setMontante(double montante) {
-       // if (montante > 0) {
-            //Conta conta = BdUtil.obterConta(this.getNrConta());
-            //if (conta.getSaldo() >= montante) {
-                this.montante = montante;
-                return true;
-            /*}
-            else {
-                System.out.println("Saldo insuficiente");
-                return false;
-            }*/
-       /* }
+        if (montante > 0 && montante <= this.getConta().getSaldo()) {
+            this.montante = montante;
+            return true;
+        }
         else {
-            System.out.println("Montante inserido inválido.");
+            System.out.println("Montante inserido inválido ou insuficiente");
             return false;
-        }*/
+        }
     }
 
     public Conta getConta(){

@@ -1,13 +1,10 @@
 package com.example.banco.movimentos;
 
-import com.example.banco.conta.Conta;
-import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.sql.Timestamp;
 import java.util.Scanner;
 
 public class Transferencia {
@@ -15,7 +12,7 @@ public class Transferencia {
     private int nrContaOrigem;
     private int nrContaDestino;
     private double montante;
-    private LocalDateTime data;
+    private Timestamp data;
 
     //Metodo para transferir dinheiro entre duas contas
     //Recebe como parametro um cliente para fazer a confirmação da palavra-passe como uma forma de segurança
@@ -51,8 +48,9 @@ public class Transferencia {
 
             System.out.print("Total a transferir: ");
             if (this.setMontante(scan.nextDouble())) {
+                this.obterData();
                 BdUtil.execute("INSERT INTO transferencia (nrTransferencia, data, nrContaOrigem, nrContaDestino, montante)\n" +
-                        "VALUES (null, null, " + this.getNrContaOrigem() + "," + this.getNrContaDestino() + "," + this.getMontante() + ");\n" +
+                        "VALUES (null," + this.getData() + ", " + this.getNrContaOrigem() + "," + this.getNrContaDestino() + "," + this.getMontante() + ");\n" +
                         "UPDATE conta\n" +
                         "SET saldo = saldo - " + this.getMontante() +"\n" +
                         "WHERE nrconta = " + this.getNrContaOrigem() + ";\n" +
@@ -71,11 +69,11 @@ public class Transferencia {
     }
 
     public void transferenciaDetalhe(Transferencia transf) {
-        System.out.println("Tipo: Transferência");
         System.out.printf("Nº: %d\n", transf.getNrTransferencia());
         System.out.printf("Conta Origem: %d\n", transf.getNrContaOrigem());
         System.out.printf("Conta Destino: %d\n", transf.getNrContaDestino());
         System.out.printf("Montante: %.2f\n", transf.getMontante());
+        System.out.println("Data: " + transf.getData());
     }
 
     public void displayAll(int nrCliente) {
@@ -94,7 +92,8 @@ public class Transferencia {
                         resultSet.getInt("nrTransferencia"),
                         resultSet.getInt("nrContaOrigem"),
                         resultSet.getInt("nrContaDestino"),
-                        resultSet.getDouble("montante")
+                        resultSet.getDouble("montante"),
+                        resultSet.getTimestamp("data")
                 ));
                 System.out.println("######");
             }
@@ -139,11 +138,12 @@ public class Transferencia {
         return this.nrTransferencia;
     }
 
-    public Transferencia(int nrTransferencia, int nrContaOrigem, int nrContaDestino, double montante) {
+    public Transferencia(int nrTransferencia, int nrContaOrigem, int nrContaDestino, double montante, Timestamp data) {
         this.setNrTransferencia(nrTransferencia);
         this.setNrContaOrigem(nrContaOrigem);
         this.setNrContaDestino(nrContaDestino);
         this.setMontante(montante);
+        this.setData(data);
     }
 
     public Transferencia() {
@@ -152,5 +152,19 @@ public class Transferencia {
 
     private void setNrTransferencia(int nrTransferencia) {
         this.nrTransferencia = nrTransferencia;
+    }
+
+    private void setData(Timestamp data) {
+        this.data = data;
+    }
+
+    private void obterData() {
+        java.util.Date date = new java.util.Date();
+        java.sql.Timestamp timestamp = new java.sql.Timestamp(date.getTime());
+        this.data = timestamp;
+    }
+
+    public Timestamp getData() {
+        return this.data;
     }
 }

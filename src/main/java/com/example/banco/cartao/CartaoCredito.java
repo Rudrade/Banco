@@ -4,7 +4,7 @@ import com.example.banco.conta.Conta;
 
 public class CartaoCredito extends Cartao{
 	public CartaoCredito(Conta conta) {
-		super(conta);
+		super();
 		this.setTipoCartao("Crédito");
 	}
 }

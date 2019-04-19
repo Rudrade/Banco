@@ -1,5 +1,7 @@
 package com.example.banco.cartao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -10,33 +12,52 @@ import com.example.banco.util.BdUtil;
 public class Cartao {
 	private int nrCartao;
 	private String tipoCartao;
-	private Conta conta;
+	private int nrConta;
 	private boolean ativo;
 	private double saldo;
 	
 	//Metodo para desativar cartao
-	public void desativarCartao() {
+	public void desativarCartao(int nrCliente) {
 		Scanner scan = new Scanner(System.in);
-		int nCartao;
-		String password;
 		
 		System.out.println();
 		System.out.print("Cartão a desativar: ");
-		nCartao = scan.nextInt();
-		
-		System.out.print("Password:");
-		password = scan.next();
+		this.setNrCartao(scan.nextInt());
 
-		System.out.println("A processar...");
-		if (getConta().getCliente().getPassword().equals(password)) {
-			BdUtil.desativarCartao(nCartao);
+		try {
+			ResultSet resultSet = BdUtil.select("SELECT ativo, c.idCliente\n" +
+					"FROM cartao\n" +
+					"INNER JOIN (\n" +
+					"\tSELECT idCliente, nrconta\n" +
+					"    FROM conta co\n" +
+					") AS c\n" +
+					"WHERE c.nrconta = cartao.nrConta AND nrCartao = " + this.getNrCartao() +";");
+
+			while (resultSet.next()) {
+				if (resultSet.getInt("idCliente") == nrCliente) {
+					if (resultSet.getBoolean("ativo")) {
+						BdUtil.execute("UPDATE cartao\n" +
+								"SET ativo = false\n" +
+								"WHERE nrCartao = "+ this.getNrCartao() +";");
+					}
+					else {
+						System.out.println("Cartão já se encontra desativado");
+					}
+				}
+				else {
+					System.out.println("Cartão inexistente ou inválida");
+				}
+			}
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+			return;
 		}
 	}
 
 	//Metodo para mostrar o detalhe de um dado cartao
 	public void detalheCartao(Cartao cartao) {
 		System.out.printf("\nNº cartão: %d\n", cartao.getNrCartao());
-		System.out.printf("Conta: %d\n", cartao.getConta().getNrConta());
+		System.out.printf("Conta: %d\n", cartao.getNrConta());
 		System.out.printf("Tipo: %s\n", cartao.getTipoCartao());
 		System.out.printf("Saldo %.2f\n", cartao.getSaldo());
 		if (cartao.getAtivo()) {
@@ -48,79 +69,100 @@ public class Cartao {
 	}
 
 	//Metodo para listar cartao
-	public void displayCartoes(Cliente cliente) {
-		System.out.println("A processar...");
-		ArrayList<Cartao> listaCartao = BdUtil.obterCartoes(cliente.getNrCliente());
-		
-		for (Cartao cartao : listaCartao) {
-			cartao.detalheCartao(cartao);
+	public void displayCartoes(int nrCliente) {
+		try {
+			ResultSet resultSet = BdUtil.select("SELECT * FROM cartao INNER JOIN conta ON cartao.nrConta = conta.nrconta WHERE conta.idCliente = " + nrCliente + ";");
+
+			while (resultSet.next()) {
+				detalheCartao(new Cartao(
+					resultSet.getInt("nrConta"),
+					resultSet.getInt("nrCartao"),
+					resultSet.getString("tpCartao"),
+					resultSet.getBoolean("ativo"),
+					resultSet.getDouble("saldo")
+				));
+			}
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+			return;
 		}
 	}
 	
 	//Metodo para criar cartao
-	public void criarCartao(Cliente cliente) {
+	public void criarCartao(int nrCliente) {
 		Scanner scan = new Scanner(System.in);
-		int tCartao, nConta;
+		int tCartao;
 		String password;
 
 		System.out.println();
 		System.out.print("Nº conta a associar:");
-		nConta = scan.nextInt();
+		this.setNrConta(scan.nextInt());
 
-		this.setConta(BdUtil.obterConta(nConta));		
-		if (!this.getConta().getEstado() || this.getConta().getCliente().getNrCliente() != cliente.getNrCliente()) {
-			System.out.println("Conta inativa ou inexistente");
-			return;
+		try {
+            ResultSet resultSet = BdUtil.select("SELECT idCliente, ativo, tpConta\n"+
+                    "FROM conta\n" +
+                    "WHERE nrconta = " + this.getNrConta() + ";");
+            while (resultSet.next()) {
+                if (resultSet.getInt("idCliente") == nrCliente) {
+                    if (resultSet.getBoolean("ativo")) {
+                        if (resultSet.getString("tpConta").equals("Ordem")){
+                            break;
+                        }
+                        else {
+                            System.out.println("Apenas pode associado cartões a uma conta Ordem");
+                        }
+                    }
+                    else {
+                        System.out.println("Conta inativa");
+                    }
+                }
+                else {
+                    System.out.println("Conta inválida ou inexistente");
+                }
+            }
+
+            TIPO:
+            do {
+                System.out.println("1- Crédito");
+                System.out.println("2- Débito");
+                System.out.print("Opção: ");
+                tCartao = scan.nextInt();
+
+                switch (tCartao) {
+                    case 1:
+                       BdUtil.execute("INSERT INTO cartao (nrCartao, tpCartao, ativo, saldo, nrConta)\n" +
+                               "VALUES (null, 'Crédito', true, 0, " + this.getNrConta() + ");");
+                       System.out.println("Cartão criado com sucesso");
+                       break TIPO;
+                    case 2:
+                        BdUtil.execute("INSERT INTO cartao (nrCartao, tpCartao, ativo, saldo, nrConta)\n" +
+                                "VALUES (null, 'Débito', true, 0, " + this.getNrConta() + ");");
+                        System.out.println("Cartão criado com sucesso");
+                    break TIPO;
+                    default:
+                        System.out.println("Tipo inserido inválido"); }
+            }  while (tCartao != 0);
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
 		}
-
-		if (!this.getConta().getTipoConta().equals("Ordem" )) {
-			System.out.println("Apenas pode ser associado cartões a uma conta do tipo Ordem");
-			return;
-		}
-		
-		TIPO: do {
-			System.out.println("1- Crédito");
-			System.out.println("2- Débito");
-			System.out.print("Opção: ");
-			tCartao = scan.nextInt();
-
-			System.out.println("Password: ");
-			password = scan.next();
-
-			if (conta.getCliente().getPassword().equals(password)) {
-				System.out.println("A processar...");
-				switch (tCartao) {
-					case 1:
-						BdUtil.criarCartao(new CartaoCredito(this.getConta()));
-						break TIPO;
-					case 2:
-						BdUtil.criarCartao(new CartaoDebito(this.getConta()));
-						break TIPO;
-					default:
-						System.out.println("Tipo inserido inválido");
-				}
-			}
-		} while (tCartao != 0);
 	}
+
 	
 	public String getTipoCartao() {
 		return this.tipoCartao;
 	}
 	
-	public Conta getConta() {
-		return this.conta;
+	public int getNrConta() {
+		return this.nrConta;
 	}
 	
 	public int getNrCartao() {
 		return this.nrCartao;
 	}
-	
-	protected void setConta(int nrConta) {
-		this.conta = BdUtil.obterConta(nrConta);
-	}
 
-	protected void setConta(Conta conta) {
-		this.conta = conta;
+	protected void setNrConta(int nrConta) {
+		this.nrConta = nrConta;
 	}
 
 	protected void setTipoCartao(String tipoCartao) {
@@ -133,8 +175,8 @@ public class Cartao {
 		this.nrCartao = nrCartao;
 	}
 	
-	public Cartao(Conta conta, int nrCartao, String tipoCartao, boolean ativo, double saldo) {
-		this.setConta(conta);
+	public Cartao(int nrConta, int nrCartao, String tipoCartao, boolean ativo, double saldo) {
+		this.setNrConta(nrConta);
 		this.setTipoCartao(tipoCartao);
 		this.setNrCartao(nrCartao);
 		this.setAtivo(ativo);
@@ -147,10 +189,6 @@ public class Cartao {
 
 	private void setAtivo(boolean ativo) {
 		this.ativo = ativo;
-	}
-
-	public Cartao(Conta conta) {
-		this.setConta(conta);
 	}
 
 	public double getSaldo() {

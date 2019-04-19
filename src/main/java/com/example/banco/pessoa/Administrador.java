@@ -18,7 +18,7 @@ public class Administrador extends Pesssoa {
 
             switch (op) {
                 case 1:
-                    BdUtil.displayClientes();
+                    //BdUtil.displayClientes();
                     break;
                 case 0:
                     System.exit(0);

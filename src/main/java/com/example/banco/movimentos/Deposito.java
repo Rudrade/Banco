@@ -5,119 +5,145 @@ import com.example.banco.conta.Conta;
 import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Deposito {
     private int nrDeposito;
-    private Conta conta;
-    private Cartao cartao;
+    private int nrConta;
+    private int nrCartao;
     private double montante;
     private LocalDateTime data;
 
     //Metodo para depositar dinheiro
     //Recebe como parametro um cliente para fazer a confirmação da palavra-passe como uma forma de segurança
-    public void depositar(Cliente cliente) {
+    public void depositar(int nrCliente) {
         Scanner scan = new Scanner(System.in);
         int tipoDeposito;
 
-        TIPO: while (true) {
-            System.out.println();
-            System.out.println("Depositar através:");
-            System.out.println("1- Conta");
-            System.out.println("2- Cartão");
-            System.out.println("0- Sair");
-            System.out.print("Opção:");
-            tipoDeposito = scan.nextInt();
+        try {
+            TIPO: while (true) {
+                System.out.println();
+                System.out.println("Depositar através:");
+                System.out.println("1- Conta");
+                System.out.println("2- Cartão");
+                System.out.println("0- Sair");
+                System.out.print("Opção:");
+                tipoDeposito = scan.nextInt();
 
-            switch (tipoDeposito) {
-                case 1:
-                    System.out.print("Conta a depositar: ");
-                    this.setConta(BdUtil.obterConta(scan.nextInt()));
-                    if (!(this.getConta().getEstado() && this.getConta().getCliente().getNrCliente() == cliente.getNrCliente())) {
-                        System.out.println("Conta inserida inativa ou inválida");
-                        return;
-                    }
+                switch (tipoDeposito) {
+                    case 1:
+                        System.out.print("Conta a depositar: ");
+                        this.setNrConta(scan.nextInt());
+                        ResultSet resultSet = BdUtil.select("SELECT idCliente, tpConta, ativo FROM conta WHERE nrconta = " + this.getNrConta() + ";");
 
-                    if(!(this.getConta().getTipoConta().equals("Ordem") || this.getConta().getTipoConta().equals("Investimento"))) {
-                        System.out.println("Depósitos apenas podem ser realizados com uma conta Ordem ou conta Investimento");
-                        return;
-                    }
-                    break TIPO;//Fim tipo deposito 1 - conta
-                case 2:
-                    System.out.print("Cartão a depositar: ");
-                    this.setCartao(BdUtil.obterCartao(scan.nextInt()));
-
-                    if (!(this.getCartao().getAtivo() && this.getCartao().getConta().getCliente().getNrCliente() == cliente.getNrCliente())) {
-                        System.out.println("Cartão inativo ou inexistente");
-                        return;
-                    }
-
-                    if (!this.getCartao().getTipoCartao().equals("Débito")) {
-                        System.out.println("Depósitos apenas podem ser realizados com um cartão de débito");
-                        return;
-                    }
-                    break TIPO;
-                case 0:
-                    System.exit(0);
-                    break;
-                default:
-                    System.out.println("Opção selecionada é inválida");
-            }
-        }
-
-        System.out.print("Total a depositar: ");
-        if(this.setMontante(scan.nextDouble())) {
-            System.out.print("Password: ");
-            if (cliente.getPassword().equals(scan.next())) {
-                System.out.println("A processar...");
-                BdUtil.inserirDeposito(this);
-
-                System.out.println("Deposito feito com sucesso.");
-            }
-            else {
-                System.out.println("Password inválida");
-            }
-        }
-    }
-
-    public void depositoDetalhe() {
-        System.out.println("Tipo: Depósito");
-        System.out.printf("Nº: %d\n", this.getNrDeposito());
-        System.out.printf("Conta: %d\n", this.getConta().getNrConta());
-        if (this.getCartao() != null) {
-            System.out.printf("Cartão: %d\n", this.getCartao().getNrCartao());
-        }
-        System.out.printf("Montante: %.2f\n", this.getMontante());
-    }
-
-    public void displayAll(Cliente cliente) {
-    	BdUtil bd = BdUtil.getInstance();
-        ArrayList<Conta> contas = bd.obterContas(cliente.getNrCliente());
-
-        for (Conta conta : contas) {
-            if (cliente.getNrCliente() == conta.getCliente().getNrCliente()) {
-            	ArrayList<Deposito> listaDeposito = bd.obterDepositos(conta);
-                for (Deposito deposito : listaDeposito) {
-                    deposito.depositoDetalhe();
-                    System.out.println("-------------");
+                        while (resultSet.next()) {
+                            if (resultSet.getInt("idCliente") == nrCliente) {
+                                if (resultSet.getBoolean("ativo")) {
+                                    if (resultSet.getString("tpConta").equals("Ordem") || resultSet.getString("tpConta").equals("Investimento")) {
+                                        break TIPO;
+                                    }
+                                }
+                            }
+                        }
+                        System.out.println("Conta inválida");
+                        continue TIPO;
+                    case 2:
+                        System.out.print("Cartão a depositar: ");
+                        this.setNrCartao(scan.nextInt());
+                        ResultSet resultSet1 = BdUtil.select("SELECT c.ativo AS cartaoAtivo, c.tpCartao, co.ativo AS contaAtivo , co.idCliente, c.nrConta\n" +
+                                "FROM cartao c\n" +
+                                "INNER JOIN (\n" +
+                                "\tSELECT co.idCliente, co.ativo, co.nrconta\n" +
+                                "    FROM conta co\n" +
+                                ") AS co\n" +
+                                "ON c.nrConta = co.nrconta\n" +
+                                "WHERE c.nrCartao = " + this.getNrCartao() +";");
+                       while (resultSet1.next()) {
+                           if (resultSet1.getInt("idCliente") == nrCliente) {
+                               if (resultSet1.getBoolean("cartaoAtivo") && resultSet1.getBoolean("contaAtivo")) {
+                                   if (resultSet1.getString("tpCartao").equals("Débito")) {
+                                       this.setNrConta(resultSet1.getInt("nrConta"));
+                                       break TIPO;
+                                   }
+                               }
+                           }
+                       }
+                       System.out.println("Cartão inválido");
+                       continue TIPO;
+                    case 0:
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Opção selecionada é inválida");
                 }
-                return;
             }
+
+            System.out.print("Total a depositar: ");
+            if (this.setMontante(scan.nextDouble())) {
+                String nCartaoS;
+
+                if (this.getNrCartao() != 0) {
+                    nCartaoS = String.valueOf(this.getNrCartao());
+                }
+                else {
+                    nCartaoS = "null";
+                }
+
+                BdUtil.execute("INSERT INTO deposito (nrDeposito, nrConta, montante, data, nrCartao)\n" +
+                        "VALUES (null, " + this.getNrConta() + "," +  this.getMontante() + ", null," + nCartaoS + ");\n" +
+                        "UPDATE conta\n" +
+                        "SET saldo = saldo + " + this.getMontante() + "\n" +
+                        "WHERE nrconta = " + this.getNrConta() +";");
+                System.out.println("Depósito feito com sucesso");
+            }
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
         }
     }
 
-    public Deposito(int nrDeposito, Conta conta, double montante, Cartao cartao) {
-        this.setMontante(montante);
-        this.setConta(conta);
-        this.setNrDeposito(nrDeposito);
-        this.setCartao(cartao);
+    public void depositoDetalhe(Deposito deposito) {
+        System.out.println("Tipo: Depósito");
+        System.out.printf("Nº: %d\n", deposito.getNrDeposito());
+        System.out.printf("Conta: %d\n", deposito.getNrConta());
+        if (deposito.getNrCartao() != 0) {
+            System.out.printf("Cartão: %d\n", deposito.getNrCartao());
+        }
+        System.out.printf("Montante: %.2f\n", deposito.getMontante());
+        System.out.println("#########");
     }
 
-    public Deposito(Conta conta, double montante) {
-        this.setConta(conta);
+    public void displayAll(int nrCliente) {
+        try {
+            ResultSet resultSet = BdUtil.select("select d.nrDeposito, d.nrConta, d.montante, d.data, d.nrCartao\n" +
+                    "from deposito d\n" +
+                    "inner join conta c\n" +
+                    "on d.nrConta = c.nrconta\n" +
+                    "where c.idCliente = " + nrCliente + ";");
+
+            while (resultSet.next()) {
+                depositoDetalhe(new Deposito(
+                        resultSet.getInt("nrDeposito"),
+                        resultSet.getInt("nrConta"),
+                        resultSet.getDouble("montante"),
+                        resultSet.getInt("nrCartao")
+                ));
+            }
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
+        }
+    }
+
+    public Deposito(int nrDeposito, int nrConta, double montante, int nrCartao) {
         this.setMontante(montante);
+        this.setNrConta(nrConta);
+        this.setNrDeposito(nrDeposito);
+        this.setNrCartao(nrCartao);
     }
 
     private void setNrDeposito(int nrDeposito) {
@@ -142,20 +168,20 @@ public class Deposito {
         return this.nrDeposito;
     }
 
-    public Conta getConta(){
-        return this.conta;
+    public int getNrConta(){
+        return this.nrConta;
     }
 
-    private void setConta(Conta conta) {
-        this.conta = conta;
+    private void setNrConta(int nrConta) {
+        this.nrConta = nrConta;
     }
 
-    private void setCartao(Cartao cartao) {
-        this.cartao = cartao;
+    private void setNrCartao(int nrCartao) {
+        this.nrCartao = nrCartao;
     }
 
-    public Cartao getCartao() {
-        return this.cartao;
+    public int getNrCartao() {
+        return this.nrCartao;
     }
 
     public Deposito() {

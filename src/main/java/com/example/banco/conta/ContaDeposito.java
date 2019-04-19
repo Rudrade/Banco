@@ -12,32 +12,27 @@ public class ContaDeposito extends Conta{
 	private int duracao;
 	private int juros;
 
-	ContaDeposito(Cliente cliente) {
-		super(cliente);
-
+	ContaDeposito(int nrCliente) {
 		Scanner scan = new Scanner(System.in);
-
-		this.setTipoConta("Depósito a prazo");
-		this.setJuros(5);
 		System.out.print("Duração da conta (1-5 anos):");
 		if (this.setDuracao(scan.nextInt())) {
 			System.out.print("Montante inicial:");
 			if (this.setSaldo(scan.nextDouble())) {
-				System.out.println("A processar...");
-				BdUtil.criarConta(this);
-
 				try {
+					BdUtil.execute("INSERT INTO conta (nrconta, juros, tpConta, ativo, saldo, idCliente)\n" +
+							"VALUES (null, 5, 'Depósito a prazo', true, " + this.getSaldo() + ", " + nrCliente + ");");
 					ResultSet resultSet = BdUtil.select("SELECT nrconta FROM conta ORDER BY nrconta DESC LIMIT 1;");
 					while (resultSet.next()) {
 						this.setNrConta(resultSet.getInt("nrconta"));
 						break;
 					}
+					BdUtil.execute("INSERT INTO deposito (nrDeposito, nrConta, montante, data, nrCartao)\n" +
+							"VALUES (null, " + this.getNrConta() + ", " + this.getSaldo() + ", null, null);");
+					System.out.println("Conta criada com sucesso");
 				} catch (SQLException e) {
 					System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+					return;
 				}
-
-				BdUtil.inserirDeposito(new Deposito(this, this.getSaldo()));
-				System.out.println("Conta criada com sucesso");
 			}
 		}
 	}

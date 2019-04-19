@@ -1,45 +1,62 @@
 package com.example.banco.conta;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 
+import javax.xml.transform.Result;
+
 public class Conta {
     private int nrConta;
     private double saldo;
     private String tipoConta;
-    private Cliente cliente;
+    private int nrCliente;
     private boolean ativo;
 
     //Metodo para desativar conta
-    public void desativarConta() {
+    public void desativarConta(int nrCliente) {
     	Scanner scan = new Scanner(System.in);
     	String password;
     	
     	System.out.println();
     	System.out.print("Número da conta:");
-    	setNrConta(scan.nextInt());
-    	
-    	System.out.print("Password:");
-    	password = scan.next();
+    	this.setNrConta(scan.nextInt());
 
-        System.out.println("A processar...");
-    	String passwordVerf = BdUtil.obterCliente(getCliente().getNrCliente()).getPassword();
-
-    	if (password.equals(passwordVerf)) {
-    	    if (BdUtil.obterConta(getNrConta()).getCliente().getNrCliente() == getCliente().getNrCliente()) {
-    	        BdUtil.desativarConta(this);
+    	try {
+            ResultSet resultSet = BdUtil.select("SELECT idCliente, ativo\n" +
+                    "FROM conta\n" +
+                    "WHERE nrconta = " + this.getNrConta() + ";");
+            while (resultSet.next()) {
+                if (resultSet.getInt("idCliente") == nrCliente) {
+                    if (resultSet.getBoolean("ativo")) {
+                        BdUtil.execute("UPDATE conta\n" +
+                                "SET ativo = false\n" +
+                                "WHERE nrconta = "+ this.getNrConta() +";");
+                        System.out.println("Conta desativada com sucesso");
+                    }
+                    else {
+                        System.out.println("Conta já se encontra desativada");
+                    }
+                }
+                else {
+                    System.out.println("Conta inválida ou inexistente");
+                }
             }
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
         }
     }
-    
+
     //Metodo para perguntar qual o tipo de conta a criar
-    public void criarConta() {
+    public void criarConta(int nrCliente) {
     	Scanner scan = new Scanner(System.in);
     	int tipoConta;
-    	
+
     	CRIAR: do {
     		System.out.println();
     		System.out.println("1- Poupança");
@@ -49,48 +66,64 @@ public class Conta {
     		
     		switch (tipoConta) {
 			    case 1:
-			        System.out.println("A processar...");
-			        BdUtil.criarConta(new ContaPoupanca(this.getCliente()));
-			        System.out.println("Conta criada com sucesso.");
+			        try {
+                        BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente)\n" +
+                                "VALUES (null, 0, 5, 'Poupança', true," + nrCliente + ");");
+                        System.out.println("Conta criada com sucesso.");
+                    } catch (SQLException e) {
+                        System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+                        return;
+                    }
 				    break CRIAR;
 			    case 2:
-				    new ContaDeposito(this.getCliente());
+			        new ContaDeposito(nrCliente);
 				    break CRIAR;
 			    default:
 				    System.out.println("Opção inserida inválida");
 			}
     	} while (tipoConta != 0);
     }
-    
-    //Metodo para fazer o display de todas as contas de um dado cliente
-    public void displayContas() {
-        System.out.println("A processar...");
-        ArrayList<Conta> listaContas = BdUtil.obterContas(getCliente().getNrCliente());
 
-        for (Conta conta : listaContas) {
-            System.out.println();
-            System.out.printf("Nº Conta: %d\n", conta.getNrConta());
-            System.out.printf("Saldo: %.2f\n", conta.getSaldo());
-            System.out.printf("Tipo: %s\n", conta.getTipoConta());
-            if (conta.getEstado()) {
-                System.out.println("Estado: Ativo");
+    //Metodo para fazer o display de todas as contas de um dado cliente
+    public void displayContas(int nrCliente) {
+        try {
+            ResultSet resultSet = BdUtil.select("SELECT * FROM conta WHERE idCliente = " + nrCliente + ";");
+
+            while (resultSet.next()) {
+                detalheConta(new Conta(
+                        resultSet.getInt("nrConta"),
+                        resultSet.getDouble("saldo"),
+                        resultSet.getString("tpConta"),
+                        resultSet.getBoolean("ativo"),
+                        nrCliente
+                ));
             }
-            else {
-                System.out.println("Estado: Inativo");
-            }
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
         }
     }
 
-    public Conta(int nrConta, double saldo, String tipoConta, boolean ativo, Cliente cliente) {
+    //Metodo para mostrar o detalhe de uma dada conta
+    public void detalheConta(Conta conta) {
+        System.out.println();
+        System.out.printf("Nº Conta: %d\n", conta.getNrConta());
+        System.out.printf("Saldo: %.2f\n", conta.getSaldo());
+        System.out.printf("Tipo: %s\n", conta.getTipoConta());
+        if (conta.getEstado()) {
+            System.out.println("Estado: Ativo");
+        }
+        else {
+            System.out.println("Estado: Inativo");
+        }
+    }
+
+    public Conta(int nrConta, double saldo, String tipoConta, boolean ativo, int nrCliente) {
         this.setNrConta(nrConta);
         this.setSaldo(saldo);
         this.setTipoConta(tipoConta);
         this.setAtivo(ativo);
-        this.setCliente(cliente);
-    }
-
-    public Conta(Cliente cliente) {
-    	this.setCliente(cliente);
+        this.setNrCliente(nrCliente);
     }
 
     boolean setSaldo(double saldo) {
@@ -134,11 +167,15 @@ public class Conta {
         this.ativo = ativo;
     }
 
-    protected void setCliente(Cliente cliente) {
-        this.cliente = cliente;
+    protected void setNrCliente(int nrCliente) {
+        this.nrCliente = nrCliente;
     }
 
-    public Cliente getCliente() {
-        return this.cliente;
+    public int getNrCliente() {
+        return this.nrCliente;
+    }
+
+    public Conta() {
+
     }
 }

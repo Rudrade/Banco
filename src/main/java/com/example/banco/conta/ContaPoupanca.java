@@ -6,7 +6,7 @@ public class ContaPoupanca extends Conta{
 	private int juros;
 
 	public ContaPoupanca(Cliente cliente) {
-		super(cliente);
+		super();
 		this.setTipoConta("Poupança");
 		this.setJuros(5);
 	}

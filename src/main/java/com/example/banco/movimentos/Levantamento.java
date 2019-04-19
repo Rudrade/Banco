@@ -1,5 +1,7 @@
 package com.example.banco.movimentos;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -11,72 +13,97 @@ import com.example.banco.util.BdUtil;
 
 public class Levantamento {
     private int nrLevantamento;
-    private Conta conta;
-    private Cartao cartao;
+    private int nrConta;
+    private int nrCartao;
     private double montante;
     private LocalDateTime data;
 
     //Metodo para levantar dinheiro através de uma conta
     //Rece como parametro um cliente para fazer a confirmação da password como uma forma de segunraça
-    public void levantar(Cliente cliente) {
+    public void levantar(int nrCliente) {
         Scanner scan = new Scanner(System.in);
 
         System.out.println();
         System.out.print("Conta a levantar:");
-        this.setConta(BdUtil.obterConta(scan.nextInt()));
-        if (!(this.getConta().getTipoConta().equals("Ordem"))) {
-            System.out.println("Apenas é permitido fazer levantamentos de uma conta a Ordem");
-            return;
-        }
+        this.setNrConta(scan.nextInt());
 
-        if (!(this.getConta().getEstado() && this.getConta().getCliente().getNrCliente() == cliente.getNrCliente())) {
-            System.out.println("Conta inserida inativa ou inválida");
-            return;
-        }
+        try {
+            ResultSet resultSet = BdUtil.select("SELECT tpConta, ativo, idCliente\n" +
+                    "FROM conta\n" +
+                    "WHERE nrconta = "+ this.getNrConta() + ";");
 
-        System.out.print("Password: ");
-        if (this.getConta().getCliente().getPassword().equals(scan.next())) {
-            System.out.print("Total a levantar: ");
-            if (this.setMontante(scan.nextDouble())) {
-                System.out.println("A processar...");
-                BdUtil.inserirLevantamento(this);
-                System.out.println("Levantamento feito com sucesso.");
+            while (resultSet.next()) {
+                if (resultSet.getInt("idCliente") == nrCliente) {
+                    if (resultSet.getBoolean("ativo")) {
+                        if (resultSet.getString("tpConta").equals("Ordem")) {
+                            break;
+                        }
+                        else {
+                            System.out.println("Levantamentos são apenas permitidos através de uma conta a Ordem");
+                            return;
+                        }
+                    }
+                    else {
+                        System.out.println("Conta inativa");
+                        return;
+                    }
+                }
+                else {
+                    System.out.println("Conta inválida ou inexistente");
+                    return;
+                }
             }
-        }
-        else {
-            System.out.println("Password ou número de conta inválido");
+
+            System.out.print("Motante a levantar: ");
+            if(this.setMontante(scan.nextDouble())) {
+                BdUtil.execute("INSERT INTO levantamento (nrLevantamento, nrConta, montante, data, nCartao)\n" +
+                        "VALUES (null, " + this.getNrConta() + "," +  this.getMontante() + ", null, null);\n" +
+                        "UPDATE conta\n" +
+                        "SET saldo = saldo - " + this.getMontante() + "\n" +
+                        "WHERE nrconta = " + this.getNrConta() +";");
+                System.out.println("Levantamento feito com sucesso");
+            }
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
         }
     }
 
     public void levantamentoDetalhe(Levantamento levantamento) {
         System.out.println("Tipo: Levantamento");
         System.out.printf("Nº: %d\n", levantamento.getNrLevantamento());
-        System.out.printf("Conta: %d\n", levantamento.getConta().getNrConta());
-        if (levantamento.getCartao() != null) {
-        	System.out.printf("Cartão: %d\n", levantamento.getCartao().getNrCartao());
+        System.out.printf("Conta: %d\n", levantamento.getNrConta());
+        if (levantamento.getNrCartao() != 0) {
+        	System.out.printf("Cartão: %d\n", levantamento.getNrCartao());
         }
         System.out.printf("Montante: %.2f\n", levantamento.getMontante());
+        System.out.println("##########");
     }
 
-    public void displayAll(Cliente cliente) {
-        ArrayList<Conta> contas = BdUtil.obterContas(cliente.getNrCliente());
+    public void displayAll(int nrCliente) {
+        try {
+            ResultSet resultSet = BdUtil.select("SELECT * \n" +
+                    "FROM levantamento;");
 
-        for (Conta conta : contas) {
-            if (cliente.getNrCliente() == conta.getCliente().getNrCliente()) {
-            	ArrayList<Levantamento> listaLevantamento = BdUtil.obterLevantamento(conta);
-                for (Levantamento levantamento : listaLevantamento) {
-                    levantamento.levantamentoDetalhe(levantamento);
-                    System.out.println("-------------");
-                }
-                return;
+            while (resultSet.next()) {
+                levantamentoDetalhe(new Levantamento(
+                        resultSet.getInt("nrLevantamento"),
+                        resultSet.getInt("nrConta"),
+                        resultSet.getDouble("montante"),
+                        resultSet.getInt("nCartao")
+                ));
             }
+        } catch (SQLException e){
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
         }
     }
 
-    public Levantamento(int nrLevantamento, Conta conta, double montante, Cartao cartao) {
-        this.montante = montante;
-        this.setConta(conta);
+    public Levantamento(int nrLevantamento, int nrConta, double montante, int nrCartao) {
+        this.setMontante(montante);
+        this.setNrCartao(nrCartao);
         this.setNrLevantamento(nrLevantamento);
+        this.setNrConta(nrConta);
     }
 
     private void setNrLevantamento(int nrLevantamento) {
@@ -86,7 +113,7 @@ public class Levantamento {
     //Metodo para validar se o montante desejado pelo utilizador é válido
     //Faz uma query a base de dados de forma a verificar a quantidade de saldo da conta
     private boolean setMontante(double montante) {
-        if (montante > 0 && montante <= this.getConta().getSaldo()) {
+        if (montante > 0) {
             this.montante = montante;
             return true;
         }
@@ -96,12 +123,12 @@ public class Levantamento {
         }
     }
 
-    public Conta getConta(){
-        return this.conta;
+    public int getNrConta(){
+        return this.nrConta;
     }
 
-    private void setConta(Conta conta) {
-        this.conta = conta;
+    private void setNrConta(int nrConta) {
+        this.nrConta = nrConta;
     }
 
     public double getMontante() {
@@ -110,12 +137,12 @@ public class Levantamento {
 
     public Levantamento() {}
 
-    public Cartao getCartao() {
-    	return this.cartao;
+    public int getNrCartao() {
+    	return this.nrCartao;
     }
     
-    private void setCartao(Cartao cartao) {
-    	this.cartao = cartao;
+    private void setNrCartao(int nrCartao) {
+    	this.nrCartao = nrCartao;
     }
     
     public int getNrLevantamento() {

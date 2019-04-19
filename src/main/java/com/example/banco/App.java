@@ -3,8 +3,13 @@ package com.example.banco;
 import java.util.Scanner;
 
 import com.example.banco.pessoa.Cliente;
+import com.example.banco.util.BdUtil;
 
 public class App {
+	static {
+		BdUtil.getInstance();
+	}
+
     public static void main (String[] args) {
     	Cliente cliente = new Cliente();
     	Scanner scan = new Scanner(System.in);

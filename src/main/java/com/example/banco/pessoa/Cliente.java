@@ -1,5 +1,7 @@
 package com.example.banco.pessoa;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 import com.example.banco.cartao.Cartao;
@@ -9,8 +11,6 @@ import com.example.banco.movimentos.Deposito;
 import com.example.banco.movimentos.Levantamento;
 import com.example.banco.movimentos.Transferencia;
 import com.example.banco.util.BdUtil;
-
-import javax.sound.midi.Soundbank;
 
 //Class Cliente
 public class Cliente extends Pesssoa {
@@ -33,78 +33,89 @@ public class Cliente extends Pesssoa {
 			System.out.print("Password: ");
 			password = scan.next();
 
-			System.out.println("A processar...");
-			switch(BdUtil.login(nCliente, password)) {
-                case "normal":
-                	this.setTipoCliente("Normal");
-                	this.setNrCliente(nCliente);
-                	this.setPassword(password);
-                    break;
-                case "vip":
-                    break;
-                case "administrador":
-                    Administrador.menuAdmin();
-                    break;
-				default:
-					continue LOGIN;
-            }
+			try {
+				ResultSet resultSet = BdUtil.select("SELECT password FROM cliente WHERE idCliente = " + nCliente + ";");
 
-            SUBMENU: while(true) {
-				System.out.println();
-				System.out.println("Menu:");
-				System.out.println("1- Listar contas");
-				System.out.println("2- Listar cartões");
-				System.out.println("3- Depositar");
-				System.out.println("4- Levantamentar");
-				System.out.println("5- Transferencia");
-				System.out.println("6- Criar Conta");
-				System.out.println("7- Desativar Conta");
-				System.out.println("8- Criar cartão");
-				System.out.println("9- Desativar cartão");
-				System.out.println("10- Consultar Movimentos");
-				System.out.println("0- Sair");
-				System.out.print("Opção: ");
-				op = scan.nextInt();
-
-				switch (op) {
-					case 1:
-						new Conta(this).displayContas();
-						continue SUBMENU;
-					case 2:
-						new Cartao().displayCartoes(this);
-						continue SUBMENU;
-					case 3:
-						new Deposito().depositar(this);
-						continue SUBMENU;
-					case 4:
-						new Levantamento().levantar(this);
-						continue SUBMENU;
-					case 5:
-						new Transferencia().transferir(this);
-						continue SUBMENU;
-					case 6:
-						new Conta(this).criarConta();
-						continue SUBMENU;
-					case 7:
-						new Conta(this).desativarConta();
-						continue SUBMENU;
-					case 8:
-						new Cartao().criarCartao(this);
-						continue SUBMENU;
-					case 9:
-						new Cartao().desativarCartao();
-						continue SUBMENU;
-					case 10:
-						System.out.println("A processar...");
-						new Deposito().displayAll(this);/*
-						new Levantamento().displayAll(this);
-						new Transferencia().displayAll(this);*/
-						break;
-					case 0:
-						System.exit(0);
-					default:
-						System.out.println("Opção selecionada inválida");
+				while (resultSet.next()) {
+					if (resultSet.getString("password").equals(password)) {
+						this.setNrCliente(nCliente);
+						System.out.println("Login com sucesso");
+						break LOGIN;
+					}
 				}
+			} catch (SQLException e) {
+				System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+			}
+		}
+
+		SUBMENU: while(true) {
+			System.out.println();
+			System.out.println("Menu:");
+			System.out.println("1- Listar contas");
+			System.out.println("2- Listar cartões");
+			System.out.println("3- Depositar");
+			System.out.println("4- Levantamentar");
+			System.out.println("5- Transferencia");
+			System.out.println("6- Criar Conta");
+			System.out.println("7- Desativar Conta");
+			System.out.println("8- Criar cartão");
+			System.out.println("9- Desativar cartão");
+			System.out.println("10- Consultar Movimentos");
+			System.out.println("0- Sair");
+			System.out.print("Opção: ");
+			op = scan.nextInt();
+
+			switch (op) {
+				case 1:
+					new Conta().displayContas(this.getNrCliente());
+					continue SUBMENU;
+				case 2:
+					new Cartao().displayCartoes(this.getNrCliente());
+					continue SUBMENU;
+				case 3:
+					new Deposito().depositar(this.getNrCliente());
+					continue SUBMENU;
+				case 4:
+					new Levantamento().levantar(this.getNrCliente());
+					continue SUBMENU;
+				case 5:
+					new Transferencia().transferir(this.getNrCliente());
+					continue SUBMENU;
+				case 6:
+					new Conta().criarConta(this.getNrCliente());
+					continue SUBMENU;
+				case 7:
+					new Conta().desativarConta(this.getNrCliente());
+					continue SUBMENU;
+				case 8:
+					new Cartao().criarCartao(this.getNrCliente());
+					continue SUBMENU;
+				case 9:
+					new Cartao().desativarCartao(this.getNrCliente());
+					continue SUBMENU;
+				case 10:
+					System.out.println();
+					System.out.println("Tipo de visualização:");
+					System.out.println("1- Depósitos");
+					System.out.println("2- Levantamentos");
+					System.out.println("3- Transferências");
+					System.out.print("Opção:");
+					switch (scan.nextInt()) {
+						case 1:
+							new Deposito().displayAll(this.getNrCliente());
+						break;
+						case 2:
+							new Levantamento().displayAll(this.getNrCliente());
+						break;
+						case 3:
+							new Transferencia().displayAll(this.getNrCliente());
+						break;
+					}
+					break;
+				case 0:
+					System.exit(0);
+				default:
+					System.out.println("Opção selecionada inválida");
 			}
 		}
 	}
@@ -160,10 +171,34 @@ public class Cliente extends Pesssoa {
 		} while (!this.setPassword(scan.next()));
 
 		System.out.println("A processar...");
-		BdUtil.registarCliente(this);
-		Cliente cliente = BdUtil.obterClienteTel(getTelefone());
-		BdUtil.criarConta(new ContaOrdem(cliente));
-		System.out.printf("Cliente registado com sucesso, atribuido o número: %d\n", cliente.getNrCliente());
+		//BdUtil.registarCliente(this);
+		//Cliente cliente = BdUtil.obterClienteTel(getTelefone());
+		//BdUtil.criarConta(new ContaOrdem(cliente));
+		//System.out.printf("Cliente registado com sucesso, atribuido o número: %d\n", cliente.getNrCliente());
+	}
+
+	//Metodo para obter um cliente na base de dados
+	public Cliente obterCliente(int nrCliente) {
+		try {
+			ResultSet resultSet = BdUtil.select("SELECT * FROM cliente INNER JOIN pessoa ON cliente.idPessoa = pessoa.idPessoa WHERE cliente.idCliente = " + nrCliente + ";");
+
+			while (resultSet.next()) {
+				return new Cliente(
+						resultSet.getInt("idCliente"),
+						resultSet.getString("password"),
+						resultSet.getString("tpCliente"),
+						resultSet.getString("nome"),
+						resultSet.getString("morada"),
+						resultSet.getInt("telefone"),
+						resultSet.getString("email"),
+						resultSet.getString("profissao")
+				);
+			}
+		} catch (SQLException e){
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+
+		return null;
 	}
 
 	public Cliente (int nrCliente, String password, String tipoCliente, String nome, String morada, int telefone, String email, String profissao) {

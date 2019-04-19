@@ -88,6 +88,9 @@ public class Deposito {
 
                 if (this.getNrCartao() != 0) {
                     nCartaoS = String.valueOf(this.getNrCartao());
+                    BdUtil.execute("UPDATE cartao\n" +
+                            "SET saldo = saldo + " + this.getMontante() + "\n" +
+                            "WHERE nrCartao = " + this.getNrCartao() + ";");
                 }
                 else {
                     nCartaoS = "null";

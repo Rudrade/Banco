@@ -26,31 +26,53 @@ public class Transferencia {
         System.out.print("Conta destino: ");
         this.setNrContaDestino(scan.nextInt());
 
+        if (this.getNrContaOrigem() == this.getNrContaDestino()) {
+            System.out.println("Não pode transferir para a mesma conta");
+            return;
+        }
+
         try {
-            ResultSet resultSet = BdUtil.select("SELECT distinct c.idCliente, c.ativo AS ativo1, c2.ativo AS ativo2\n" +
+            ResultSet resultSet = BdUtil.select("SELECT distinct c.idCliente AS cliente1, c.ativo AS ativo1, c2.ativo AS ativo2, c.tpConta AS tipo1, c2.tpConta AS tipo2, c2.idCliente AS cliente2\n" +
                     "FROM conta c\n" +
                     "INNER JOIN conta c2 ON c.nrconta != c2.nrconta\n" +
                     "WHERE c.nrconta = "+ this.getNrContaOrigem() +" AND c2.nrconta = "+ this.getNrContaDestino() +";");
 
             while (resultSet.next()) {
-                if (resultSet.getInt("idCliente") == nrCliente) {
+                if (resultSet.getInt("cliente1") == nrCliente) {
                     if (resultSet.getBoolean("ativo1") && resultSet.getBoolean("ativo2")) {
-                        break;
-                    }
-                    else {
+                        if (resultSet.getString("tipo1").equals("Ordem")) {
+                            break;
+                        }
+                        else if (resultSet.getInt("cliente2") == nrCliente){
+                            if (resultSet.getString("tipo2").equals("Ordem")) {
+                                break;
+                            }
+                        }
+                    } else {
                         System.out.println("Pelo menos uma das contas está inativa");
                     }
                 }
-                else {
-                    System.out.println("Conta inválida ou inexistente");
-                }
+                System.out.println("Conta inválida ou inexistente");
+                return;
             }
 
             System.out.print("Total a transferir: ");
+            double mont = scan.nextDouble();
+
+            ResultSet resultSet1 = BdUtil.select("SELECT saldo\n"+
+                    "FROM conta\n"+
+                    "WHERE nrconta = " + this.getNrContaOrigem() + ";");
+
+            while (resultSet1.next()) {
+                if (resultSet1.getDouble("saldo") < mont || mont <= 0) {
+                    System.out.println("Saldo inválido ou insuficiente");
+                    return;
+                }
+            }
             if (this.setMontante(scan.nextDouble())) {
                 this.obterData();
                 BdUtil.execute("INSERT INTO transferencia (nrTransferencia, data, nrContaOrigem, nrContaDestino, montante)\n" +
-                        "VALUES (null," + this.getData() + ", " + this.getNrContaOrigem() + "," + this.getNrContaDestino() + "," + this.getMontante() + ");\n" +
+                        "VALUES (null,'" + this.getData() + "', " + this.getNrContaOrigem() + "," + this.getNrContaDestino() + "," + this.getMontante() + ");\n" +
                         "UPDATE conta\n" +
                         "SET saldo = saldo - " + this.getMontante() +"\n" +
                         "WHERE nrconta = " + this.getNrContaOrigem() + ";\n" +

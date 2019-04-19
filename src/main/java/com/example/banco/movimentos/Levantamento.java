@@ -52,9 +52,21 @@ public class Levantamento {
 
             this.obterData();
             System.out.print("Motante a levantar: ");
-            if(this.setMontante(scan.nextDouble())) {
+            double mont = scan.nextDouble();
+            ResultSet resultSet1 = BdUtil.select("SELECT saldo\n"+
+                        "FROM conta\n"+
+                        "WHERE nrconta = " + this.getNrConta() + ";");
+
+            while (resultSet1.next()) {
+                if (resultSet1.getDouble("saldo") < mont || mont <= 0) {
+                    System.out.println("Saldo inválido ou insuficiente");
+                    return;
+                }
+            }
+
+            if(this.setMontante(mont)) {
                 BdUtil.execute("INSERT INTO levantamento (nrLevantamento, nrConta, montante, data, nCartao)\n" +
-                        "VALUES (null, " + this.getNrConta() + "," +  this.getMontante() + ", " + this.getData() + ", null);\n" +
+                        "VALUES (null, " + this.getNrConta() + "," +  this.getMontante() + ", '" + this.getData() + "', null);\n" +
                         "UPDATE conta\n" +
                         "SET saldo = saldo - " + this.getMontante() + "\n" +
                         "WHERE nrconta = " + this.getNrConta() +";");
@@ -116,10 +128,8 @@ public class Levantamento {
             this.montante = montante;
             return true;
         }
-        else {
-            System.out.println("Montante inserido inválido ou insuficiente");
-            return false;
-        }
+        System.out.println("Montante inserido inválido ou insuficiente");
+        return false;
     }
 
     public int getNrConta(){

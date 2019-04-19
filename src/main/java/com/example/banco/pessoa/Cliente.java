@@ -6,7 +6,6 @@ import java.util.Scanner;
 
 import com.example.banco.cartao.Cartao;
 import com.example.banco.conta.Conta;
-import com.example.banco.conta.ContaOrdem;
 import com.example.banco.movimentos.Deposito;
 import com.example.banco.movimentos.Levantamento;
 import com.example.banco.movimentos.Transferencia;
@@ -170,11 +169,25 @@ public class Cliente extends Pesssoa {
 			System.out.print("Password: ");
 		} while (!this.setPassword(scan.next()));
 
-		System.out.println("A processar...");
-		//BdUtil.registarCliente(this);
-		//Cliente cliente = BdUtil.obterClienteTel(getTelefone());
-		//BdUtil.criarConta(new ContaOrdem(cliente));
-		//System.out.printf("Cliente registado com sucesso, atribuido o número: %d\n", cliente.getNrCliente());
+		try {
+			BdUtil.execute("INSERT INTO pessoa (idPessoa, nome, morada, telefone, email, profissao)\n" +
+					"VALUES (null,'" + this.getNome() + "', '" + this.getMorada() + "', " + this.getTelefone() + ", '" + this.getEmail() + "', '" + this.getProfissao() + "');\n" +
+					"INSERT INTO cliente (idCliente, tpCliente, password, idPessoa)\n" +
+					"VALUES (null, '" + this.getTipoCliente() + "', '" + this.getPassword() + "', (SELECT idPessoa FROM pessoa ORDER BY idPessoa DESC LIMIT 1));\n" +
+					"INSERT INTO conta (nrConta, saldo, juros, tpConta, ativo, idCliente)\n" +
+					"VALUES (null, 0, 0, 'Ordem', true, (SELECT idCliente FROM cliente ORDER BY idCliente DESC LIMIT 1));\n" +
+					"INSERT INTO cartao (nrCartao, saldo, tpCartao, ativo, nrConta)\n" +
+					"VALUES (null, 0, 'Débito', true, (SELECT nrconta FROM conta ORDER BY nrconta DESC LIMIT 1));");
+
+			ResultSet resultSet = BdUtil.select("SELECT idCliente FROM cliente ORDER BY idCliente DESC LIMIT 1");
+			while (resultSet.next()) {
+				System.out.printf("Cliente criado com o número: %d\n", resultSet.getInt("idCliente"));
+				break;
+			}
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+			return;
+		}
 	}
 
 	//Metodo para obter um cliente na base de dados

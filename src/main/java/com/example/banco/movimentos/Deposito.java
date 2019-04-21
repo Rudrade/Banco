@@ -39,7 +39,7 @@ public class Deposito {
                         while (resultSet.next()) {
                             if (resultSet.getInt("idCliente") == nrCliente) {
                                 if (resultSet.getBoolean("ativo")) {
-                                    if (resultSet.getString("tpConta").equals("Ordem") || resultSet.getString("tpConta").equals("Investimento")) {
+                                    if (resultSet.getString("tpConta").equals("Ordem")) {
                                         break TIPO;
                                     }
                                 }

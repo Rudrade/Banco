@@ -56,11 +56,26 @@ public class Conta {
     public void criarConta(int nrCliente) {
     	Scanner scan = new Scanner(System.in);
     	int tipoConta;
+    	String tipoCliente = null;
+
+    	try {
+            ResultSet resultSet = BdUtil.select("SELECT tpCliente FROM cliente WHERE idCliente = " + nrCliente + ";");
+
+            while (resultSet.next()) {
+                tipoCliente = resultSet.getString("tpCliente");
+            }
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
+        }
 
     	CRIAR: do {
     		System.out.println();
     		System.out.println("1- Poupança");
     		System.out.println("2- Depósito a prazo");
+    		if (tipoCliente.equals("vip")) {
+    		    System.out.println("3- Investimento");
+            }
     		System.out.print("Opção: ");
     		tipoConta = scan.nextInt();
     		
@@ -78,6 +93,22 @@ public class Conta {
 			    case 2:
 			        new ContaDeposito(nrCliente);
 				    break CRIAR;
+                case 3:
+                    if (tipoCliente.equals("vip")) {
+                        try {
+                            BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente)\n" +
+                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ");");
+                            System.out.println("Conta criada com sucesso.");
+                        } catch (SQLException e) {
+                            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+                            return;
+                        }
+                    }
+                    else {
+                        System.out.println("Opção inserida inválida");
+                        continue;
+                    }
+                    break CRIAR;
 			    default:
 				    System.out.println("Opção inserida inválida");
 			}

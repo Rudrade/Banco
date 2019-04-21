@@ -69,6 +69,7 @@ public class Transferencia {
                     return;
                 }
             }
+
             if (this.setMontante(scan.nextDouble())) {
                 this.obterData();
                 BdUtil.execute("INSERT INTO transferencia (nrTransferencia, data, nrContaOrigem, nrContaDestino, montante)\n" +

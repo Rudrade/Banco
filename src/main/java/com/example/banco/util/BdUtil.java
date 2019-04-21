@@ -1,14 +1,6 @@
 package com.example.banco.util;
 
 import java.sql.*;
-import java.util.ArrayList;
-
-import com.example.banco.cartao.Cartao;
-import com.example.banco.conta.Conta;
-import com.example.banco.movimentos.Deposito;
-import com.example.banco.movimentos.Levantamento;
-import com.example.banco.movimentos.Transferencia;
-import com.example.banco.pessoa.Cliente;
 
 //Class utilitária para acesso à base de dados
 public class BdUtil {

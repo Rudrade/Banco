@@ -19,8 +19,8 @@ public class ContaDeposito extends Conta{
 			System.out.print("Montante inicial:");
 			if (this.setSaldo(scan.nextDouble())) {
 				try {
-					BdUtil.execute("INSERT INTO conta (nrconta, juros, tpConta, ativo, saldo, idCliente)\n" +
-							"VALUES (null, 5, 'Depósito a prazo', true, " + this.getSaldo() + ", " + nrCliente + ");");
+					BdUtil.execute("INSERT INTO conta (nrconta, juros, tpConta, ativo, saldo, idCliente, duracao)\n" +
+							"VALUES (null, 5, 'Depósito a prazo', true, " + this.getSaldo() + ", " + nrCliente + "," + this.getDuracao() + ");");
 					ResultSet resultSet = BdUtil.select("SELECT nrconta FROM conta ORDER BY nrconta DESC LIMIT 1;");
 					while (resultSet.next()) {
 						this.setNrConta(resultSet.getInt("nrconta"));
@@ -44,6 +44,10 @@ public class ContaDeposito extends Conta{
 		}
 		System.out.println("Duração inserida inválida");
 		return false;
+	}
+
+	public int getDuracao() {
+		return this.duracao;
 	}
 
 	private void setJuros(int juros) {

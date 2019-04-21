@@ -4,10 +4,12 @@ import java.util.Scanner;
 
 import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
+import com.example.banco.util.Data;
 
 public class App {
 	static {
 		BdUtil.getInstance();
+		new Data();
 	}
 
     public static void main (String[] args) {
@@ -17,9 +19,11 @@ public class App {
     	
     	do {
     		System.out.println();
+    		Data.printData();
     		System.out.println("Menu:");
     		System.out.println("1- Login");
     		System.out.println("2- Registo");
+    		System.out.println("3- Opções data");
     		System.out.println("0- Sair");
     		System.out.print("Opção: ");
     		op = scan.nextInt();
@@ -31,6 +35,9 @@ public class App {
     			case 2:
     				cliente.registarCliente();
     				break;
+				case 3:
+					Data.menu();
+					break;
     			case 0:
     				System.exit(0);
     			default:

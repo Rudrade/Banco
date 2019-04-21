@@ -33,11 +33,12 @@ public class Cliente extends Pesssoa {
 			password = scan.next();
 
 			try {
-				ResultSet resultSet = BdUtil.select("SELECT password FROM cliente WHERE idCliente = " + nCliente + ";");
+				ResultSet resultSet = BdUtil.select("SELECT password, tpCliente FROM cliente WHERE idCliente = " + nCliente + ";");
 
 				while (resultSet.next()) {
 					if (resultSet.getString("password").equals(password)) {
 						this.setNrCliente(nCliente);
+						this.setTipoCliente(resultSet.getString("tpCliente"));
 						System.out.println("Login com sucesso");
 						break LOGIN;
 					}
@@ -47,7 +48,8 @@ public class Cliente extends Pesssoa {
 			}
 		}
 
-		SUBMENU: while(true) {
+		SUBMENU:
+		while (true) {
 			System.out.println();
 			System.out.println("Menu:");
 			System.out.println("1- Listar contas");
@@ -63,8 +65,7 @@ public class Cliente extends Pesssoa {
 			System.out.println("0- Sair");
 			System.out.print("Opção: ");
 			op = scan.nextInt();
-
-			switch (op) {
+				switch (op) {
 				case 1:
 					new Conta().displayContas(this.getNrCliente());
 					continue SUBMENU;
@@ -102,15 +103,15 @@ public class Cliente extends Pesssoa {
 					switch (scan.nextInt()) {
 						case 1:
 							new Deposito().displayAll(this.getNrCliente());
-						break;
+							break;
 						case 2:
 							new Levantamento().displayAll(this.getNrCliente());
-						break;
+							break;
 						case 3:
 							new Transferencia().displayAll(this.getNrCliente());
-						break;
+							break;
 					}
-					break;
+					continue SUBMENU;
 				case 0:
 					System.exit(0);
 				default:

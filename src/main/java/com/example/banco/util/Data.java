@@ -12,7 +12,7 @@ public class Data {
     private static Date dataAtual;
 
     static {
-        dataAtual = criarData();
+        dataAtual = obterData();
     }
 
     public static void printData() {
@@ -24,7 +24,7 @@ public class Data {
         return dataAtual;
     }
 
-    private static Date criarData() {
+    private static Date obterData() {
         try {
             ResultSet resultSet = BdUtil.select("SELECT currentDate FROM data LIMIT 1;");
 
@@ -49,7 +49,14 @@ public class Data {
     }
 
     private static void reset() {
-
+        try {
+            BdUtil.execute("UPDATE data SET currentDate = now();");
+            dataAtual = obterData();
+            System.out.println("Data reposta com sucesso");
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+            return;
+        }
     }
 
     private static void avancar() {
@@ -76,7 +83,7 @@ public class Data {
         while (true) {
             System.out.println();
             System.out.println("1- Avançar");
-            System.out.println("2- Reset");
+            System.out.println("2- Repor");
             System.out.println("0- Voltar ao menu anterior");
             System.out.print("Opção: ");
             op = scanner.nextInt();

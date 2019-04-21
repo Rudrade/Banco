@@ -121,13 +121,26 @@ public class Conta {
             ResultSet resultSet = BdUtil.select("SELECT * FROM conta WHERE idCliente = " + nrCliente + ";");
 
             while (resultSet.next()) {
-                detalheConta(new Conta(
-                        resultSet.getInt("nrConta"),
-                        resultSet.getDouble("saldo"),
-                        resultSet.getString("tpConta"),
-                        resultSet.getBoolean("ativo"),
-                        nrCliente
-                ));
+                if (resultSet.getString("tpConta").equals("Depósito a prazo")) {
+                    new ContaDeposito(
+                            resultSet.getInt("nrConta"),
+                            resultSet.getDouble("saldo"),
+                            resultSet.getString("tpConta"),
+                            nrCliente,
+                            resultSet.getBoolean("ativo"),
+                            resultSet.getInt("juros"),
+                            resultSet.getDate("duracao")
+                    ).detalheConta();
+                }
+                else {
+                    detalheConta(new Conta(
+                            resultSet.getInt("nrConta"),
+                            resultSet.getDouble("saldo"),
+                            resultSet.getString("tpConta"),
+                            resultSet.getBoolean("ativo"),
+                            nrCliente
+                    ));
+                }
             }
         } catch (SQLException e) {
             System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -194,7 +207,7 @@ public class Conta {
         return this.ativo;
     }
 
-    private void setAtivo(boolean ativo) {
+    void setAtivo(boolean ativo) {
         this.ativo = ativo;
     }
 

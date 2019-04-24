@@ -115,9 +115,15 @@ public class Data {
         }
     }
 
-    public static String obterDataAtualString() {
+    public static String obterDataS(Date date) {
+        DateFormat outputFormatter = new SimpleDateFormat("dd/MM/yyyy");
+        String output = outputFormatter.format(date);
+        return output;
+    }
+
+    public static String obterDataString(Date date) {
         DateFormat outputFormatter = new SimpleDateFormat("yyyy/MM/dd");
-        String output = outputFormatter.format(getDataAtual());
+        String output = outputFormatter.format(date);
         return output;
     }
 }

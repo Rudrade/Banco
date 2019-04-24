@@ -63,7 +63,7 @@ public class Cliente extends Pesssoa {
 			System.out.println("8- Criar cartão");
 			System.out.println("9- Desativar cartão");
 			System.out.println("10- Consultar Movimentos");
-			System.out.println("0- Sair");
+			System.out.println("0- Menu anterior");
 			System.out.print("Opção: ");
 			op = scan.nextInt();
 				switch (op) {
@@ -114,7 +114,7 @@ public class Cliente extends Pesssoa {
 					}
 					continue SUBMENU;
 				case 0:
-					System.exit(0);
+					return;
 				default:
 					System.out.println("Opção selecionada inválida");
 			}

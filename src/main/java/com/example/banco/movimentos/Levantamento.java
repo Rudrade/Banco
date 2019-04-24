@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.util.Scanner;
 
 import com.example.banco.util.BdUtil;
+import com.example.banco.util.Data;
 
 public class Levantamento {
     private int nrLevantamento;
@@ -20,11 +21,11 @@ public class Levantamento {
         Scanner scan = new Scanner(System.in);
 
         System.out.println();
-        System.out.print("Conta a levantar:");
+        System.out.print("Conta a levantar: ");
         this.setNrConta(scan.nextInt());
 
         try {
-            ResultSet resultSet = BdUtil.select("SELECT tpConta, ativo, idCliente\n" +
+            ResultSet resultSet = BdUtil.select("SELECT tpConta, ativo, idCliente, duracao\n" +
                     "FROM conta\n" +
                     "WHERE nrconta = "+ this.getNrConta() + ";");
 
@@ -33,6 +34,16 @@ public class Levantamento {
                     if (resultSet.getBoolean("ativo")) {
                         if (resultSet.getString("tpConta").equals("Ordem")) {
                             break;
+                        }
+                        else if (resultSet.getString("tpConta").equals("Depósito a prazo")) {
+                            if (resultSet.getDate("duracao").compareTo(Data.getDataAtual()) < 0) {
+                                break;
+                            }
+                            else {
+
+                                System.out.println("Apenas pode fazer depósitos apartir de " + Data.obterDataS(resultSet.getDate("duracao")));
+                                return;
+                            }
                         }
                         else {
                             System.out.println("Levantamentos são apenas permitidos através de uma conta a Ordem");

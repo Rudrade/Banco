@@ -86,7 +86,7 @@ public class Conta {
 			    case 1:
 			        try {
                         BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao, nrAgencia)\n" +
-                                "VALUES (null, 0, 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataAtualString() + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
+                                "VALUES (null, 0, 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
                         System.out.println("Conta criada com sucesso.");
                     } catch (SQLException e) {
                         System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -100,7 +100,7 @@ public class Conta {
                     if (tipoCliente.equals("vip")) {
                         try {
                             BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao, nrAgencia)\n" +
-                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ",'" + Data.obterDataAtualString() + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
+                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ",'" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
                             System.out.println("Conta criada com sucesso.");
                         } catch (SQLException e) {
                             System.out.printf("Ocorreu um erro: %s\n", e.getMessage());

@@ -28,7 +28,7 @@ public class ContaDeposito extends Conta{
 					String output = outputFormatter.format(this.data.getTime());
 
 					BdUtil.execute("INSERT INTO conta (nrconta, juros, tpConta, ativo, saldo, idCliente, duracao, dataCriacao, nrAgencia)\n" +
-							"VALUES (null, 5, 'Depósito a prazo', true, " + this.getSaldo() + ", " + nrCliente + ",'" + output + "','" + Data.obterDataAtualString() + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
+							"VALUES (null, 5, 'Depósito a prazo', true, " + this.getSaldo() + ", " + nrCliente + ",'" + output + "','" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
 					ResultSet resultSet = BdUtil.select("SELECT nrconta FROM conta ORDER BY nrconta DESC LIMIT 1;");
 					while (resultSet.next()) {
 						this.setNrConta(resultSet.getInt("nrconta"));

@@ -1,10 +1,14 @@
 package com.example.banco.movimentos;
 
 import com.example.banco.util.BdUtil;
+import com.example.banco.util.Data;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 
 public class Deposito {
@@ -12,7 +16,7 @@ public class Deposito {
     private int nrConta;
     private int nrCartao;
     private double montante;
-    private Timestamp data;
+    private Date data;
 
     //Metodo para depositar dinheiro
     //Recebe como parametro um cliente para fazer a confirmação da palavra-passe como uma forma de segurança
@@ -34,13 +38,22 @@ public class Deposito {
                     case 1:
                         System.out.print("Conta a depositar: ");
                         this.setNrConta(scan.nextInt());
-                        ResultSet resultSet = BdUtil.select("SELECT idCliente, tpConta, ativo FROM conta WHERE nrconta = " + this.getNrConta() + ";");
+                        ResultSet resultSet = BdUtil.select("SELECT idCliente, tpConta, ativo, duracao FROM conta WHERE nrconta = " + this.getNrConta() + ";");
 
                         while (resultSet.next()) {
                             if (resultSet.getInt("idCliente") == nrCliente) {
                                 if (resultSet.getBoolean("ativo")) {
                                     if (resultSet.getString("tpConta").equals("Ordem")) {
                                         break TIPO;
+                                    }
+                                    else if (resultSet.getString("tpConta").equals("Depósito a prazo")) {
+                                        if (resultSet.getDate("duracao").compareTo(Data.getDataAtual()) < 0) {
+                                            break TIPO;
+                                        }
+                                        else {
+                                            System.out.println("Apenas pode fazer depósitos apartir de " + Data.obterDataS(resultSet.getDate("duracao")));
+                                            return;
+                                        }
                                     }
                                 }
                             }
@@ -93,8 +106,10 @@ public class Deposito {
                 }
 
                 this.obterData();
+                DateFormat outputFormatter = new SimpleDateFormat("yyyy/MM/dd");
+                String output = outputFormatter.format(this.getData());
                 BdUtil.execute("INSERT INTO deposito (nrDeposito, nrConta, montante, data, nrCartao)\n" +
-                        "VALUES (null, " + this.getNrConta() + "," +  this.getMontante() + ",'" + this.getData() + "',"+ nCartaoS + ");\n" +
+                        "VALUES (null, " + this.getNrConta() + "," +  this.getMontante() + ",'" + output + "',"+ nCartaoS + ");\n" +
                         "UPDATE conta\n" +
                         "SET saldo = saldo + " + this.getMontante() + "\n" +
                         "WHERE nrconta = " + this.getNrConta() +";");
@@ -113,7 +128,7 @@ public class Deposito {
             System.out.printf("Cartão: %d\n", deposito.getNrCartao());
         }
         System.out.printf("Montante: %.2f\n", deposito.getMontante());
-        System.out.println("Data: " + deposito.getData());
+        System.out.println("Data: " + Data.obterDataS(deposito.getData()));
         System.out.println("#########");
     }
 
@@ -131,7 +146,7 @@ public class Deposito {
                         resultSet.getInt("nrConta"),
                         resultSet.getDouble("montante"),
                         resultSet.getInt("nrCartao"),
-                        resultSet.getTimestamp("data")
+                        resultSet.getDate("data")
                 ));
             }
         } catch (SQLException e) {
@@ -140,7 +155,7 @@ public class Deposito {
         }
     }
 
-    public Deposito(int nrDeposito, int nrConta, double montante, int nrCartao, Timestamp data) {
+    public Deposito(int nrDeposito, int nrConta, double montante, int nrCartao, Date data) {
         this.setMontante(montante);
         this.setNrConta(nrConta);
         this.setNrDeposito(nrDeposito);
@@ -186,17 +201,15 @@ public class Deposito {
         return this.nrCartao;
     }
 
-    private void setData(Timestamp data) {
+    private void setData(Date data) {
         this.data = data;
     }
 
     private void obterData() {
-        java.util.Date date = new java.util.Date();
-        java.sql.Timestamp timestamp = new java.sql.Timestamp(date.getTime());
-        this.data = timestamp;
+        this.data = Data.getDataAtual();
     }
 
-    public Timestamp getData() {
+    public Date getData() {
         return this.data;
     }
 

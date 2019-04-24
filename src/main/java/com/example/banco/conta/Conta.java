@@ -3,10 +3,12 @@ package com.example.banco.conta;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 
 import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
+import com.example.banco.util.Data;
 
 import javax.xml.transform.Result;
 
@@ -16,6 +18,7 @@ public class Conta {
     private String tipoConta;
     private int nrCliente;
     private boolean ativo;
+    private Date dataCriacao;
 
     //Metodo para desativar conta
     public void desativarConta(int nrCliente) {
@@ -82,8 +85,8 @@ public class Conta {
     		switch (tipoConta) {
 			    case 1:
 			        try {
-                        BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente)\n" +
-                                "VALUES (null, 0, 5, 'Poupança', true," + nrCliente + ");");
+                        BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao)\n" +
+                                "VALUES (null, 0, 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataAtualString() + "');");
                         System.out.println("Conta criada com sucesso.");
                     } catch (SQLException e) {
                         System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -96,8 +99,8 @@ public class Conta {
                 case 3:
                     if (tipoCliente.equals("vip")) {
                         try {
-                            BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente)\n" +
-                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ");");
+                            BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao)\n" +
+                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ",'" + Data.obterDataAtualString() + "');");
                             System.out.println("Conta criada com sucesso.");
                         } catch (SQLException e) {
                             System.out.printf("Ocorreu um erro: %s\n", e.getMessage());

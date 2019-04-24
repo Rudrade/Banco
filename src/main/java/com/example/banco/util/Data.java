@@ -102,4 +102,10 @@ public class Data {
             }
         }
     }
+
+    public static String obterDataAtualString() {
+        DateFormat outputFormatter = new SimpleDateFormat("yyyy/MM/dd");
+        String output = outputFormatter.format(getDataAtual());
+        return output;
+    }
 }

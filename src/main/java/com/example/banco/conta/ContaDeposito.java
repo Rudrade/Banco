@@ -23,6 +23,15 @@ public class ContaDeposito extends Conta{
 			System.out.print("Montante inicial: ");
 			if (this.setSaldo(scan.nextDouble())) {
 				try {
+					ResultSet resultSet1 = BdUtil.select("SELECT saldo FROM conta WHERE tpConta = 'Ordem' and idCliente = " + nrCliente + ";");
+
+					while (resultSet1.next()) {
+						if (resultSet1.getDouble("saldo") < this.getSaldo()) {
+							System.out.println("Saldo insuficiente na conta a ordem");
+							return;
+						}
+					}
+
 					this.setValidacao();
 					DateFormat outputFormatter = new SimpleDateFormat("yyyy/MM/dd");
 					String output = outputFormatter.format(this.data.getTime());
@@ -52,7 +61,7 @@ public class ContaDeposito extends Conta{
 		System.out.printf("Saldo: %.2f\n", this.getSaldo());
 		System.out.printf("Tipo: %s\n", this.getTipoConta());
 		try {
-			System.out.printf("Data validade: %s\n", this.getData().toString());
+			System.out.printf("Data validade: %s\n", Data.obterDataS(this.getData()));
 		} catch (NullPointerException e) {}
 		if (this.getEstado()) {
 			System.out.println("Estado: Ativo");

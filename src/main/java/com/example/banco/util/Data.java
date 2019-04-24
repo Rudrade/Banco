@@ -2,7 +2,6 @@ package com.example.banco.util;
 
 import java.sql.*;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Calendar;
@@ -27,9 +26,17 @@ public class Data {
     private static Date obterData() {
         try {
             ResultSet resultSet = BdUtil.select("SELECT currentDate FROM data LIMIT 1;");
-
             while (resultSet.next()) {
-                return resultSet.getDate("currentDate");
+                if (resultSet.getDate("currentDate").compareTo(Calendar.getInstance().getTime()) < 0) {
+                    BdUtil.execute("UPDATE data SET currentDate = now();");
+                    ResultSet resultSet1 = BdUtil.select("SELECT currentDate FROM data LIMIT 1;");
+                    while (resultSet1.next()) {
+                        return resultSet1.getDate("currentDate");
+                    }
+                }
+                else {
+                    return resultSet.getDate("currentDate");
+                }
             }
         } catch (SQLException e) {
             System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -60,13 +67,14 @@ public class Data {
     }
 
     private static void avancar() {
-            Calendar calendar = Calendar.getInstance();
-            Scanner scanner = new Scanner(System.in);
-            int dias;
+        Calendar calendar = Calendar.getInstance();
+        Scanner scanner = new Scanner(System.in);
+        int dias;
 
-            System.out.print("Tempo a avançar (dias): ");
-            dias = scanner.nextInt();
+        System.out.print("Tempo a avançar (dias): ");
+        dias = scanner.nextInt();
 
+        if (dias > 0) {
             calendar.setTime(dataAtual);
             calendar.add(Calendar.DATE, dias);
             dataAtual = calendar.getTime();
@@ -74,6 +82,10 @@ public class Data {
             DateFormat outputFormatter = new SimpleDateFormat("yyyy/MM/dd");
             String output = outputFormatter.format(dataAtual);
             insertDataAtual(output);
+        }
+        else {
+            System.out.println("Dias inseridos inválidos");
+        }
     }
 
     public static void menu() {

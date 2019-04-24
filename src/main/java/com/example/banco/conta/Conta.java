@@ -19,6 +19,7 @@ public class Conta {
     private int nrCliente;
     private boolean ativo;
     private Date dataCriacao;
+    private int nrAgencia;
 
     //Metodo para desativar conta
     public void desativarConta(int nrCliente) {
@@ -85,8 +86,8 @@ public class Conta {
     		switch (tipoConta) {
 			    case 1:
 			        try {
-                        BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao)\n" +
-                                "VALUES (null, 0, 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataAtualString() + "');");
+                        BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao, nrAgencia)\n" +
+                                "VALUES (null, 0, 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataAtualString() + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
                         System.out.println("Conta criada com sucesso.");
                     } catch (SQLException e) {
                         System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -99,8 +100,8 @@ public class Conta {
                 case 3:
                     if (tipoCliente.equals("vip")) {
                         try {
-                            BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao)\n" +
-                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ",'" + Data.obterDataAtualString() + "');");
+                            BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao, nrAgencia)\n" +
+                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ",'" + Data.obterDataAtualString() + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
                             System.out.println("Conta criada com sucesso.");
                         } catch (SQLException e) {
                             System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -141,7 +142,8 @@ public class Conta {
                             resultSet.getDouble("saldo"),
                             resultSet.getString("tpConta"),
                             resultSet.getBoolean("ativo"),
-                            nrCliente
+                            nrCliente,
+                            resultSet.getInt("nrAgencia")
                     ));
                 }
             }
@@ -157,6 +159,7 @@ public class Conta {
         System.out.printf("Nº Conta: %d\n", conta.getNrConta());
         System.out.printf("Saldo: %.2f\n", conta.getSaldo());
         System.out.printf("Tipo: %s\n", conta.getTipoConta());
+        System.out.printf("Agência: %d\n", conta.getNrAgencia());
         if (conta.getEstado()) {
             System.out.println("Estado: Ativo");
         }
@@ -165,12 +168,13 @@ public class Conta {
         }
     }
 
-    public Conta(int nrConta, double saldo, String tipoConta, boolean ativo, int nrCliente) {
+    public Conta(int nrConta, double saldo, String tipoConta, boolean ativo, int nrCliente, int nrAgencia) {
         this.setNrConta(nrConta);
         this.setSaldo(saldo);
         this.setTipoConta(tipoConta);
         this.setAtivo(ativo);
         this.setNrCliente(nrCliente);
+        this.setNrAgencia(nrAgencia);
     }
 
     boolean setSaldo(double saldo) {
@@ -220,6 +224,25 @@ public class Conta {
 
     public int getNrCliente() {
         return this.nrCliente;
+    }
+
+    private void setNrAgencia(int nrAgencia) {
+        try {
+            ResultSet resultSet = BdUtil.select("SELECT nrAgencia FROM agencia WHERE nrAgencia = " + nrAgencia +";");
+
+            while (resultSet.next()) {
+                this.nrAgencia = nrAgencia;
+                return;
+            }
+
+            System.out.println("Agência inexistente");
+        } catch (SQLException e) {
+            System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+        }
+    }
+
+    public int getNrAgencia() {
+        return this.nrAgencia;
     }
 
     public Conta() {

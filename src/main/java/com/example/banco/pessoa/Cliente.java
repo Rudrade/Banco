@@ -16,6 +16,7 @@ public class Cliente extends Pesssoa {
 	private int nrCliente;
 	private String password;
 	private String tipoCliente;
+	private int nrAgencia;
 
 	//Metodo para um cliente fazer login
 	public void login() {
@@ -132,6 +133,7 @@ public class Cliente extends Pesssoa {
 			System.out.println("1- Normal");
 			System.out.println("2- VIP");
 			System.out.println("0- Cancelar");
+			System.out.print("Opção: ");
 			tipoCliente = scan.nextInt();
 		
 			switch (tipoCliente) {
@@ -147,44 +149,50 @@ public class Cliente extends Pesssoa {
 					System.out.println("A opção selecionada não existe");
 			}
 		} while(tipoCliente != 0);
-		
-		System.out.println();
-		System.out.print("Nome: ");
-		this.setNome(scan.next());
-		
-		System.out.print("Morada: ");
-		this.setMorada(scan.next());
-		
+
 		do {
-			System.out.print("Telefone: ");
-		} while (!this.setTelefone(scan.nextInt()));
-		
-		do {
-			System.out.print("Email: ");
-		} while (!this.setEmail(scan.next()));
-		
-		System.out.print("Profissão: ");
-		this.setProfissao(scan.next());
-		
-		do {
-			System.out.print("Password: ");
-		} while (!this.setPassword(scan.next()));
+			System.out.println();
+			System.out.print("Nº da agência a associar: ");
+		} while (!this.setNrAgencia(scan.nextInt()));
 
 		try {
+			System.out.println();
+			System.out.print("Nome: ");
+			this.setNome(scan.next());
+		
+			System.out.print("Morada: ");
+			this.setMorada(scan.next());
+		
+			do {
+				System.out.print("Telefone: ");
+			} while (!this.setTelefone(scan.nextInt()));
+		
+			do {
+				System.out.print("Email: ");
+			} while (!this.setEmail(scan.next()));
+		
+			System.out.print("Profissão: ");
+			this.setProfissao(scan.next());
+		
+			do {
+				System.out.print("Password: ");
+			} while (!this.setPassword(scan.next()));
+
 			BdUtil.execute("INSERT INTO pessoa (idPessoa, nome, morada, telefone, email, profissao)\n" +
-					"VALUES (null,'" + this.getNome() + "', '" + this.getMorada() + "', " + this.getTelefone() + ", '" + this.getEmail() + "', '" + this.getProfissao() + "');\n" +
-					"INSERT INTO cliente (idCliente, tpCliente, password, idPessoa)\n" +
-					"VALUES (null, '" + this.getTipoCliente() + "', '" + this.getPassword() + "', (SELECT idPessoa FROM pessoa ORDER BY idPessoa DESC LIMIT 1));\n" +
-					"INSERT INTO conta (nrConta, saldo, juros, tpConta, ativo, idCliente)\n" +
-					"VALUES (null, 0, 0, 'Ordem', true, (SELECT idCliente FROM cliente ORDER BY idCliente DESC LIMIT 1));\n" +
-					"INSERT INTO cartao (nrCartao, saldo, tpCartao, ativo, nrConta)\n" +
-					"VALUES (null, 0, 'Débito', true, (SELECT nrconta FROM conta ORDER BY nrconta DESC LIMIT 1));");
+				"VALUES (null,'" + this.getNome() + "', '" + this.getMorada() + "', " + this.getTelefone() + ", '" + this.getEmail() + "', '" + this.getProfissao() + "');\n" +
+				"INSERT INTO cliente (idCliente, tpCliente, password, nrAgencia, idPessoa)\n" +
+				"VALUES (null, '" + this.getTipoCliente() + "', '" + this.getPassword() + "'," + this.getNrAgencia() + ", (SELECT idPessoa FROM pessoa ORDER BY idPessoa DESC LIMIT 1));\n" +
+				"INSERT INTO conta (nrConta, saldo, juros, tpConta, ativo, idCliente, nrAgencia)\n" +
+				"VALUES (null, 0, 0, 'Ordem', true, (SELECT idCliente FROM cliente ORDER BY idCliente DESC LIMIT 1)," + this.getNrAgencia() + ");\n" +
+				"INSERT INTO cartao (nrCartao, saldo, tpCartao, ativo, nrConta)\n" +
+				"VALUES (null, 0, 'Débito', true, (SELECT nrconta FROM conta ORDER BY nrconta DESC LIMIT 1));");
 
 			ResultSet resultSet = BdUtil.select("SELECT idCliente FROM cliente ORDER BY idCliente DESC LIMIT 1");
 			while (resultSet.next()) {
 				System.out.printf("Cliente criado com o número: %d\n", resultSet.getInt("idCliente"));
 				break;
 			}
+
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
 			return;
@@ -205,7 +213,8 @@ public class Cliente extends Pesssoa {
 						resultSet.getString("morada"),
 						resultSet.getInt("telefone"),
 						resultSet.getString("email"),
-						resultSet.getString("profissao")
+						resultSet.getString("profissao"),
+						resultSet.getInt("nrAgencia")
 				);
 			}
 		} catch (SQLException e){
@@ -215,7 +224,7 @@ public class Cliente extends Pesssoa {
 		return null;
 	}
 
-	public Cliente (int nrCliente, String password, String tipoCliente, String nome, String morada, int telefone, String email, String profissao) {
+	public Cliente (int nrCliente, String password, String tipoCliente, String nome, String morada, int telefone, String email, String profissao, int nrAgencia) {
 		this.setNrCliente(nrCliente);
 		this.setPassword(password);
 		this.setTipoCliente(tipoCliente);
@@ -224,6 +233,7 @@ public class Cliente extends Pesssoa {
 		this.setTelefone(telefone);
 		this.setEmail(email);
 		this.setProfissao(profissao);
+		this.setNrAgencia(nrAgencia);
 	}
 
 	void setNrCliente(int nrCliente) {
@@ -257,6 +267,27 @@ public class Cliente extends Pesssoa {
 		if (tipoCliente.equals("vip") || tipoCliente.equals("normal")) {
 			this.tipoCliente = tipoCliente;
 		}
+	}
+
+	boolean setNrAgencia(int nrAgencia) {
+		try {
+			ResultSet resultSet = BdUtil.select("SELECT nrAgencia FROM agencia WHERE nrAgencia = " + nrAgencia +";");
+
+			while (resultSet.next()) {
+				this.nrAgencia = nrAgencia;
+				return true;
+			}
+
+			System.out.println("Agência inexistente");
+			return false;
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+		}
+		return false;
+	}
+
+	public int getNrAgencia() {
+		return this.nrAgencia;
 	}
 
 	public Cliente() {

@@ -126,6 +126,8 @@ public class Cliente extends Pesssoa {
 	public void registarCliente() {
 		Scanner scan = new Scanner(System.in);
 		int tipoCliente;
+		String sql = null;
+		ClienteVIP clienteVIP = null;
 		
 		TIPO: do {
 			System.out.println();
@@ -139,9 +141,11 @@ public class Cliente extends Pesssoa {
 			switch (tipoCliente) {
 				case 1:
 					this.setTipoCliente("normal");
+
 					break TIPO;
 				case 2:
 					this.setTipoCliente("vip");
+					clienteVIP = new ClienteVIP();
 					break TIPO;
 				case 0:
 					return;
@@ -151,12 +155,10 @@ public class Cliente extends Pesssoa {
 		} while(tipoCliente != 0);
 
 		do {
-			System.out.println();
 			System.out.print("Nº da agência a associar: ");
 		} while (!this.setNrAgencia(scan.nextInt()));
 
 		try {
-			System.out.println();
 			System.out.print("Nome: ");
 			this.setNome(scan.next());
 		
@@ -178,10 +180,18 @@ public class Cliente extends Pesssoa {
 				System.out.print("Password: ");
 			} while (!this.setPassword(scan.next()));
 
+			if (this.getTipoCliente().equals("normal")) {
+				sql = "INSERT INTO cliente (idCliente, tpCliente, password, nrAgencia, idPessoa)\n" +
+						"VALUES (null, '" + this.getTipoCliente() + "', '" + this.getPassword() + "'," + this.getNrAgencia() + ", (SELECT idPessoa FROM pessoa ORDER BY idPessoa DESC LIMIT 1));\n";
+			}
+			else if (this.getTipoCliente().equals("vip")) {
+				sql = "INSERT INTO cliente (idCliente, tpCliente, password, nrAgencia, nrGestor, idPessoa)\n" +
+						"VALUES (null, '" + this.getTipoCliente() + "', '" + this.getPassword() + "'," + this.getNrAgencia() + "," + clienteVIP.getNrGestor() + ", (SELECT idPessoa FROM pessoa ORDER BY idPessoa DESC LIMIT 1));\n";
+			}
+
 			BdUtil.execute("INSERT INTO pessoa (idPessoa, nome, morada, telefone, email, profissao)\n" +
 				"VALUES (null,'" + this.getNome() + "', '" + this.getMorada() + "', " + this.getTelefone() + ", '" + this.getEmail() + "', '" + this.getProfissao() + "');\n" +
-				"INSERT INTO cliente (idCliente, tpCliente, password, nrAgencia, idPessoa)\n" +
-				"VALUES (null, '" + this.getTipoCliente() + "', '" + this.getPassword() + "'," + this.getNrAgencia() + ", (SELECT idPessoa FROM pessoa ORDER BY idPessoa DESC LIMIT 1));\n" +
+				sql +
 				"INSERT INTO conta (nrConta, saldo, juros, tpConta, ativo, idCliente, nrAgencia)\n" +
 				"VALUES (null, 0, 0, 'Ordem', true, (SELECT idCliente FROM cliente ORDER BY idCliente DESC LIMIT 1)," + this.getNrAgencia() + ");\n" +
 				"INSERT INTO cartao (nrCartao, saldo, tpCartao, ativo, nrConta)\n" +

@@ -24,7 +24,6 @@ public class Conta {
     //Metodo para desativar conta
     public void desativarConta(int nrCliente) {
     	Scanner scan = new Scanner(System.in);
-    	String password;
     	
     	System.out.println();
     	System.out.print("Número da conta:");

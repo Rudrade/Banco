@@ -44,7 +44,8 @@ public class ContaDeposito extends Conta{
 						break;
 					}
 					BdUtil.execute("INSERT INTO deposito (nrDeposito, nrConta, montante, data, nrCartao)\n" +
-							"VALUES (null, " + this.getNrConta() + ", " + this.getSaldo() + ", null, null);");
+							"VALUES (null, " + this.getNrConta() + ", " + this.getSaldo() + ", null, null);\n" +
+							"UPDATE conta AS co, (SELECT nrconta FROM conta WHERE tpConta = 'Ordem' AND idCliente = " + nrCliente + ") AS c SET co.saldo = co.saldo - " + this.getSaldo() + " WHERE co.nrconta = c.nrconta;");
 					System.out.println("Conta criada com sucesso");
 				} catch (SQLException e) {
 					System.out.printf("Ocorreu um erro: %s\n", e.getMessage());

@@ -99,8 +99,20 @@ public class Conta {
                 case 3:
                     if (tipoCliente.equals("vip")) {
                         try {
+                            ResultSet resultSet = BdUtil.select("SELECT saldo, nrconta FROM conta WHERE tpConta = 'Ordem' AND idCliente = " + nrCliente + ";");
+                            int nrconta = 0;
+
+                            while (resultSet.next()) {
+                                nrconta = resultSet.getInt("nrconta");
+                                if (resultSet.getDouble("saldo") < 50) {
+                                    System.out.println("Saldo insuficiente para criar conta. Mínimo necessário de 50€");
+                                    return;
+                                }
+                            }
+
                             BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao, nrAgencia)\n" +
-                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ",'" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
+                                    "VALUES (null, 0, 5, 'Investimento', true," + nrCliente + ",'" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));" +
+                                    "UPDATE conta SET saldo = saldo - 50 WHERE nrconta = " + nrconta + ";");
                             System.out.println("Conta criada com sucesso.");
                         } catch (SQLException e) {
                             System.out.printf("Ocorreu um erro: %s\n", e.getMessage());

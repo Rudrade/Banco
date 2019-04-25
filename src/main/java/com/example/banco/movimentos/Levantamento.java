@@ -40,10 +40,12 @@ public class Levantamento {
                                 break;
                             }
                             else {
-
                                 System.out.println("Apenas pode fazer depósitos apartir de " + Data.obterDataS(resultSet.getDate("duracao")));
                                 return;
                             }
+                        }
+                        else if (resultSet.getString("tpConta").equals("Investimento")) {
+                            break;
                         }
                         else {
                             System.out.println("Levantamentos são apenas permitidos através de uma conta a Ordem");
@@ -64,11 +66,25 @@ public class Levantamento {
             this.obterData();
             System.out.print("Motante a levantar: ");
             double mont = scan.nextDouble();
-            ResultSet resultSet1 = BdUtil.select("SELECT saldo\n"+
+            ResultSet resultSet1 = BdUtil.select("SELECT saldo, tpConta\n"+
                         "FROM conta\n"+
                         "WHERE nrconta = " + this.getNrConta() + ";");
 
             while (resultSet1.next()) {
+                if (resultSet1.getString("tpConta").equals("Investimento") && resultSet1.getDouble("saldo") - mont < 50) {
+                    if (resultSet1.getDouble("saldo") < mont || mont <= 0) {
+                        System.out.println("Saldo inválido ou insuficiente");
+                        return;
+                    }
+                    System.out.println("Para levantar o saldo total de uma conta investimento, desativa a conta.");
+                    System.out.print("Deseja continuar? [s]: ");
+                    if (scan.next().toLowerCase().trim().equals("s")) {
+                        BdUtil.execute("UPDATE conta SET ativo = false WHERE nrconta = " + this.getNrConta() + ";");
+                        break;
+                    } else {
+                        return;
+                    }
+                }
                 if (resultSet1.getDouble("saldo") < mont || mont <= 0) {
                     System.out.println("Saldo inválido ou insuficiente");
                     return;

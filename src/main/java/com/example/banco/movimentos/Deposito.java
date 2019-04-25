@@ -5,7 +5,6 @@ import com.example.banco.util.Data;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -54,6 +53,9 @@ public class Deposito {
                                             System.out.println("Apenas pode fazer depósitos apartir de " + Data.obterDataS(resultSet.getDate("duracao")));
                                             return;
                                         }
+                                    }
+                                    else if (resultSet.getString("tpConta").equals("Investimento")) {
+                                        break TIPO;
                                     }
                                 }
                             }

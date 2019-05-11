@@ -1,5 +1,8 @@
 package com.example.banco.pessoa;
 
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 //Class Pessoa
 public abstract class Pesssoa {
 	private int idPessoa;
@@ -14,12 +17,12 @@ public abstract class Pesssoa {
 	}
 	
 	boolean setEmail (String email) {
-		if (email.endsWith("@gmail.com") || email.endsWith("@hotmail.com") || email.endsWith("@outlook.pt")) {
+		try {
+			InternetAddress emailAddr = new InternetAddress(email);
+			emailAddr.validate();
 			this.email = email;
 			return true;
-		}
-		else {
-			System.out.println("Email inválido");
+		} catch (AddressException ex) {
 			return false;
 		}
 	}

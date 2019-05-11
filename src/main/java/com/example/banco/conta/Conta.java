@@ -2,15 +2,11 @@ package com.example.banco.conta;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 
-import com.example.banco.pessoa.Cliente;
 import com.example.banco.util.BdUtil;
 import com.example.banco.util.Data;
-
-import javax.xml.transform.Result;
 
 public class Conta {
     private int nrConta;
@@ -85,8 +81,11 @@ public class Conta {
     		switch (tipoConta) {
 			    case 1:
 			        try {
+			            do {
+                            System.out.print("Montante inicial:");
+                        } while (!this.setSaldo(scan.nextDouble()));
                         BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao, nrAgencia)\n" +
-                                "VALUES (null, 0, 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
+                                "VALUES (null, " + this.getSaldo() + ", 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
                         System.out.println("Conta criada com sucesso.");
                     } catch (SQLException e) {
                         System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -254,6 +253,10 @@ public class Conta {
 
     public int getNrAgencia() {
         return this.nrAgencia;
+    }
+
+    public Date getDataCriacao() {
+        return this.dataCriacao;
     }
 
     public Conta() {

@@ -21,10 +21,9 @@ public class App {
     		System.out.println();
     		Data.printData();
     		System.out.println("Menu:");
-    		System.out.println("1- Login com cartão");
-    		System.out.println("2- Login com conta");
-    		System.out.println("3- Registo cliente");
-    		System.out.println("4- Opções data");
+    		System.out.println("1- Login Cliente");
+    		System.out.println("2- Registo cliente");
+    		System.out.println("3- Opções data");
     		System.out.println("0- Sair");
     		System.out.print("Opção: ");
     		op = scan.nextInt();
@@ -33,10 +32,10 @@ public class App {
     			case 1:
     				cliente.login();
     				break;
-    			case 3:
+    			case 2:
     				cliente.registarCliente();
     				break;
-				case 4:
+				case 3:
 					Data.menu();
 					break;
     			case 0:

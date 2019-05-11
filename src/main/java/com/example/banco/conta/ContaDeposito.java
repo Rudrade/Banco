@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import com.example.banco.util.BdUtil;
 import com.example.banco.util.Data;
@@ -52,6 +53,41 @@ public class ContaDeposito extends Conta{
 					return;
 				}
 			}
+		}
+	}
+
+	//Metodo para quando o tempo avança é depositado 10% da conta depósito na conta ordem correspondente
+	public void avancar() {
+		try {
+			ResultSet resultSet = BdUtil.select("SELECT * FROM conta WHERE tpConta = 'Depósito a prazo';");
+
+			while (resultSet.next()) {
+				double diff = (double) TimeUnit.DAYS.convert(resultSet.getDate("duracao").getTime() - Data.getDataAtual().getTime(), TimeUnit.MILLISECONDS);
+				while (diff != 0) {
+					if (diff >= 365 && resultSet.getInt("saldo") > 0) {
+						ResultSet resultSet1 = BdUtil.select("SELECT co.nrconta, c.saldo\n" +
+								"FROM conta c\n" +
+								"INNER JOIN (\n" +
+								"\tSELECT nrconta, saldo, idCliente\n" +
+								"    FROM conta\n" +
+								"    WHERE tpConta = 'Ordem'\n" +
+								") AS co\n" +
+								"WHERE c.idCliente = co.idCliente AND c.nrconta = " + resultSet.getInt(1) + ";");
+						while (resultSet1.next()) {
+							BdUtil.execute("UPDATE conta\n" +
+									"SET saldo = saldo + " + (resultSet1.getDouble(2) * 0.10) + "\n" +
+									"WHERE nrconta = " + resultSet1.getInt(1) + ";");
+						}
+						diff -= 365;
+					}
+					else {
+						break;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
+			return;
 		}
 	}
 
@@ -115,4 +151,6 @@ public class ContaDeposito extends Conta{
 	private void setData(Date data){
 		this.data = data;
 	}
+
+	public ContaDeposito() {};
 }

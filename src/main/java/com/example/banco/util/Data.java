@@ -1,5 +1,8 @@
 package com.example.banco.util;
 
+import com.example.banco.conta.ContaDeposito;
+import com.example.banco.conta.ContaPoupanca;
+
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -103,6 +106,8 @@ public class Data {
             switch (op) {
                 case 1:
                     avancar();
+                    new ContaPoupanca().avancarJuros();
+                    new ContaDeposito().avancar();
                     break;
                 case  2:
                     reset();

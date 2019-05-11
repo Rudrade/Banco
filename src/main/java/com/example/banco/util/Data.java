@@ -107,7 +107,7 @@ public class Data {
             switch (op) {
                 case 1:
                     avancar();
-                    new ContaPoupanca().avancarJuros();
+                    new ContaPoupanca().avancar();
                     new ContaDeposito().avancar();
                     new ContaInvestimento().avancar();
                     break;

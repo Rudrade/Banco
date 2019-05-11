@@ -17,17 +17,23 @@ public class ContaPoupanca extends Conta{
 		this.setJuros(5);
 	}
 
-	public void avancarJuros() {
+	public void avancar() {
 		try {
-			ResultSet resultSet = BdUtil.select("SELECT * FROM conta WHERE tpConta = 'Poupança';");
+			ResultSet resultSet = BdUtil.select("SELECT c.nrConta, c.juros, d.data, d.montante\n" +
+					"FROM conta c\n" +
+					"INNER JOIN (\n" +
+					"\tSELECT montante, data, nrConta\n" +
+					"    FROM deposito\n" +
+					"\t) AS d\n" +
+					"WHERE tpConta = 'Poupança' AND c.nrConta = d.nrConta;");
 
 			while (resultSet.next()) {
-				if (resultSet.getDate("dataCriacao") != null) {
-					double diff = (double) TimeUnit.DAYS.convert(Data.getDataAtual().getTime() - resultSet.getDate("dataCriacao").getTime(), TimeUnit.MILLISECONDS);
-					if (diff >= 365 && resultSet.getInt("saldo") > 0) {
-						BdUtil.execute("UPDATE conta SET saldo = saldo + " + ((5 * diff) / 365) + " WHERE nrconta = " + resultSet.getInt("nrconta"));
-					}
-				}
+				double diff = (double) TimeUnit.DAYS.convert(Data.getDataAtual().getTime() - resultSet.getDate(3).getTime(), TimeUnit.MILLISECONDS);
+				double juros = (resultSet.getDouble(2) * diff) / 365;
+
+				BdUtil.execute("UPDATE conta\n" +
+						"SET saldo = saldo + (" + (resultSet.getDouble(4) * juros)+ ")\n" +
+						"WHERE nrConta = " + resultSet.getInt(1) + ";");
 			}
 		} catch (SQLException e) {
 			System.out.printf("Ocorreu um erro: %s\n", e.getMessage());

@@ -85,7 +85,9 @@ public class Conta {
                             System.out.print("Montante inicial:");
                         } while (!this.setSaldo(scan.nextDouble()));
                         BdUtil.execute("INSERT INTO conta (nrconta, saldo, juros, tpConta, ativo, idCliente, dataCriacao, nrAgencia)\n" +
-                                "VALUES (null, " + this.getSaldo() + ", 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
+                                "VALUES (null, " + this.getSaldo() + ", 5, 'Poupança', true," + nrCliente + ",'" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));\n" +
+                                "INSERT INTO deposito (nrDeposito, nrCartao, montante, data, nrConta)\n" +
+                                "VALUES (null, null, " + this.getSaldo() + ", '" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrConta FROM conta ORDER BY nrConta DESC LIMIT 1));");
                         System.out.println("Conta criada com sucesso.");
                     } catch (SQLException e) {
                         System.out.printf("Ocorreu um erro: %s\n", e.getMessage());
@@ -102,7 +104,7 @@ public class Conta {
                             int nrconta = 0;
 
                             while (resultSet.next()) {
-                                nrconta = resultSet.getInt("nrconta");
+                                this.setSaldo(resultSet.getInt("nrconta"));
                                 if (resultSet.getDouble("saldo") < 50) {
                                     System.out.println("Saldo insuficiente para criar conta. Mínimo necessário de 50€");
                                     return;

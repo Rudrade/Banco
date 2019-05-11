@@ -56,7 +56,9 @@ public class ContaDeposito extends Conta{
 		}
 	}
 
-	//Metodo para quando o tempo avança é depositado 10% da conta depósito na conta ordem correspondente
+	//Metodo para quando o tempo avança:
+	//é depositado 10% da conta depósito na conta ordem correspondente
+	//
 	public void avancar() {
 		try {
 			ResultSet resultSet = BdUtil.select("SELECT * FROM conta WHERE tpConta = 'Depósito a prazo';");

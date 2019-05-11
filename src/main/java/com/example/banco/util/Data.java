@@ -1,6 +1,7 @@
 package com.example.banco.util;
 
 import com.example.banco.conta.ContaDeposito;
+import com.example.banco.conta.ContaInvestimento;
 import com.example.banco.conta.ContaPoupanca;
 
 import java.sql.*;
@@ -108,6 +109,7 @@ public class Data {
                     avancar();
                     new ContaPoupanca().avancarJuros();
                     new ContaDeposito().avancar();
+                    new ContaInvestimento().avancar();
                     break;
                 case  2:
                     reset();

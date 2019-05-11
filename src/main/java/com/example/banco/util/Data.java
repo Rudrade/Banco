@@ -122,7 +122,7 @@ public class Data {
         }
     }
 
-    public static String obterDataS(Date date) {
+    public static String obterDataDD(Date date) {
         DateFormat outputFormatter = new SimpleDateFormat("dd/MM/yyyy");
         String output = outputFormatter.format(date);
         return output;

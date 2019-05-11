@@ -50,7 +50,7 @@ public class Deposito {
                                             break TIPO;
                                         }
                                         else {
-                                            System.out.println("Apenas pode fazer depósitos apartir de " + Data.obterDataS(resultSet.getDate("duracao")));
+                                            System.out.println("Apenas pode fazer depósitos apartir de " + Data.obterDataDD(resultSet.getDate("duracao")));
                                             return;
                                         }
                                     }
@@ -130,7 +130,7 @@ public class Deposito {
             System.out.printf("Cartão: %d\n", deposito.getNrCartao());
         }
         System.out.printf("Montante: %.2f\n", deposito.getMontante());
-        System.out.println("Data: " + Data.obterDataS(deposito.getData()));
+        System.out.println("Data: " + Data.obterDataDD(deposito.getData()));
         System.out.println("#########");
     }
 

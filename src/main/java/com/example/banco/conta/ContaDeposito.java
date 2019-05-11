@@ -2,8 +2,6 @@ package com.example.banco.conta;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Scanner;
@@ -34,11 +32,9 @@ public class ContaDeposito extends Conta{
 					}
 
 					this.setValidacao();
-					DateFormat outputFormatter = new SimpleDateFormat("yyyy/MM/dd");
-					String output = outputFormatter.format(this.data.getTime());
 
 					BdUtil.execute("INSERT INTO conta (nrconta, juros, tpConta, ativo, saldo, idCliente, duracao, dataCriacao, nrAgencia)\n" +
-							"VALUES (null, 5, 'Depósito a prazo', true, " + this.getSaldo() + ", " + nrCliente + ",'" + output + "','" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
+							"VALUES (null, 5, 'Depósito a prazo', true, " + this.getSaldo() + ", " + nrCliente + ",'" + Data.obterDataString(this.getData()) + "','" + Data.obterDataString(Data.getDataAtual()) + "', (SELECT nrAgencia FROM cliente WHERE idCliente = " + nrCliente + "));");
 					ResultSet resultSet = BdUtil.select("SELECT nrconta FROM conta ORDER BY nrconta DESC LIMIT 1;");
 					while (resultSet.next()) {
 						this.setNrConta(resultSet.getInt("nrconta"));
@@ -81,8 +77,12 @@ public class ContaDeposito extends Conta{
 									"WHERE nrconta = " + resultSet1.getInt(1) + ";");
 						}
 						diff -= 365;
-					}
-					else {
+					} else if (diff < 0){
+						BdUtil.execute("UPDATE conta\n" +
+								"SET ativo = false\n" +
+								"WHERE nrConta = " + resultSet.getInt(1) + ";");
+						break;
+					} else {
 						break;
 					}
 				}
@@ -100,7 +100,7 @@ public class ContaDeposito extends Conta{
 		System.out.printf("Saldo: %.2f\n", this.getSaldo());
 		System.out.printf("Tipo: %s\n", this.getTipoConta());
 		try {
-			System.out.printf("Data validade: %s\n", Data.obterDataS(this.getData()));
+			System.out.printf("Data validade: %s\n", Data.obterDataDD(this.getData()));
 		} catch (NullPointerException e) {}
 		if (this.getEstado()) {
 			System.out.println("Estado: Ativo");

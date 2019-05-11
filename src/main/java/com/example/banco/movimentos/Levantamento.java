@@ -40,7 +40,7 @@ public class Levantamento {
                                 break;
                             }
                             else {
-                                System.out.println("Apenas pode fazer depósitos apartir de " + Data.obterDataS(resultSet.getDate("duracao")));
+                                System.out.println("Apenas pode fazer depósitos apartir de " + Data.obterDataDD(resultSet.getDate("duracao")));
                                 return;
                             }
                         }

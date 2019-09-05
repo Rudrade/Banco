@@ -6,4 +6,4 @@ Projeto em consiste em simular uma aplicação bancária
 - Java SE 8
 - Maven
 - JDBC
-- MySql
+- MariaDB
